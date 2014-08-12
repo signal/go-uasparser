@@ -20,11 +20,19 @@ func compileBrowserRegs(manifest *Manifest) {
   }
 }
 
+func compileOsRegs(manifest *Manifest) {
+  for i, reg := range manifest.Data.OperatingSystemsReg {
+    manifest.Data.OperatingSystemsReg[i].Reg = regexp.MustCompile(
+      regMatcher.ReplaceAllString(reg.RegString, "(?${flags}:${reg})"))
+  }
+}
+
 func Load(reader io.Reader) (*Manifest, error) {
   var manifest Manifest
   if err := xml.NewDecoder(reader).Decode(&manifest); err != nil {
     return nil, err
   }
   compileBrowserRegs(&manifest)
+  compileOsRegs(&manifest)
   return &manifest, nil
 }

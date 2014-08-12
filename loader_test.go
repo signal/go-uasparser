@@ -131,3 +131,30 @@ func TestLoadValidFile_BrowserRegs(t *testing.T) {
     regs[0].Reg.String())
   assertEquals(t, "simple regstring", "(?si:WinHttp)", regs[627].Reg.String())
 }
+
+func TestLoadValidFile_BrowserOperatingSystems(t *testing.T) {
+  oses := manifest.Data.BrowsersOs
+  assertEquals(t, "length", 72, len(oses))
+  assertEquals(t, "first browser id", 18, oses[0].BrowserId)
+  assertEquals(t, "first os id", 44, oses[0].OsId)
+
+  assertEquals(t, "last browser id", 515, oses[71].BrowserId)
+  assertEquals(t, "last os id", 87, oses[71].OsId)
+}
+
+func TestLoadValidFile_OperatingSystemRegs(t *testing.T) {
+  regs := manifest.Data.OperatingSystemsReg
+  assertEquals(t, "length", 219, len(regs))
+  assertEquals(t, "first order", 1, regs[0].Order)
+  assertEquals(t, "last order", 219, regs[218].Order)
+
+  reg := regs[0]
+  assertEquals(t, "os id", 35, reg.OsId)
+  assertEquals(t, "regstring", "/palm/si", reg.RegString)
+
+  // check actual regs
+  assertEquals(t, "complex regstring",
+    "(?si:^Mozilla\\/.*Ubuntu.*[Tablet|Mobile].*WebKit)",
+    regs[22].Reg.String())
+  assertEquals(t, "simple regstring", "(?si:palm)", regs[0].Reg.String())
+}
