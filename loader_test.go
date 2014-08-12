@@ -191,3 +191,24 @@ func TestLoadValidFile_DeviceRegs(t *testing.T) {
       "|P6800|P6810|P7110|P7300|P7310|P7320|P7500|P7510|P7511))",
     regs[89].Reg.String())
 }
+
+// description
+
+func TestLoadValidFile_Description(t *testing.T) {
+  description := manifest.Description
+  assertEquals(t, "label",
+    "Data (format xml) for UASparser - http://user-agent-string.info/download/UASparser",
+    description.Label)
+  assertEquals(t, "version", "20140812-01", description.Version)
+  assertEquals(t, "checksum length", 2, len(description.Checksums))
+
+  assertEquals(t, "first checksum type", "MD5", description.Checksums[0].Type)
+  assertEquals(t, "first checksum url",
+    "http://user-agent-string.info/rpc/get_data.php?format=xml&amp;md5=y",
+    description.Checksums[0].URL)
+
+  assertEquals(t, "second checksum type", "SHA1", description.Checksums[1].Type)
+  assertEquals(t, "second checksum url",
+    "http://user-agent-string.info/rpc/get_data.php?format=xml&amp;sha1=y",
+    description.Checksums[1].URL)
+}
