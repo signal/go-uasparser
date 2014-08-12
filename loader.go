@@ -27,6 +27,13 @@ func compileOsRegs(manifest *Manifest) {
   }
 }
 
+func compileDeviceRegs(manifest *Manifest) {
+  for i, reg := range manifest.Data.DevicesReg {
+    manifest.Data.DevicesReg[i].Reg = regexp.MustCompile(
+      regMatcher.ReplaceAllString(reg.RegString, "(?${flags}:${reg})"))
+  }
+}
+
 func Load(reader io.Reader) (*Manifest, error) {
   var manifest Manifest
   if err := xml.NewDecoder(reader).Decode(&manifest); err != nil {
@@ -34,5 +41,6 @@ func Load(reader io.Reader) (*Manifest, error) {
   }
   compileBrowserRegs(&manifest)
   compileOsRegs(&manifest)
+  compileDeviceRegs(&manifest)
   return &manifest, nil
 }

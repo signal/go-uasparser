@@ -170,3 +170,24 @@ func TestLoadValidFile_Devices(t *testing.T) {
   assertEquals(t, "icon", "other.png", device.Icon)
   assertEquals(t, "info url", "/list-of-ua/device-detail?device=Other", device.InfoURL)
 }
+
+func TestLoadValidFile_DeviceRegs(t *testing.T) {
+  regs := manifest.Data.DevicesReg
+  assertEquals(t, "length", 108, len(regs))
+  assertEquals(t, "first order", 1, regs[0].Order)
+  assertEquals(t, "last order", 108, regs[107].Order)
+
+  reg := regs[107]
+  assertEquals(t, "device id", 4, reg.DeviceId)
+  assertEquals(t, "regstring", "/^Mozilla.*Android.*Tablet.*AppleWebKit/si", reg.RegString)
+
+  // check actual regs
+  assertEquals(t, "simple regstring",
+    "(?si:^Mozilla.*Android.*Tablet.*AppleWebKit)",
+    regs[107].Reg.String())
+  assertEquals(t, "complex regstring",
+    "(?si:^Mozilla.*Android.*GT\\-("+
+      "P1000|P1010|P3100|P3105|P3110|P3113|P5100|P5110|P5113|P5200|P5210|P6200|P6201|P6210|P6211"+
+      "|P6800|P6810|P7110|P7300|P7310|P7320|P7500|P7510|P7511))",
+    regs[89].Reg.String())
+}
