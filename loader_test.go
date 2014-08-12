@@ -158,3 +158,15 @@ func TestLoadValidFile_OperatingSystemRegs(t *testing.T) {
     regs[22].Reg.String())
   assertEquals(t, "simple regstring", "(?si:palm)", regs[0].Reg.String())
 }
+
+func TestLoadValidFile_Devices(t *testing.T) {
+  devices := manifest.Data.Devices
+  assertEquals(t, "length", 8, len(devices))
+  assertEquals(t, "first id", 1, devices[0].Id)
+  assertEquals(t, "last id", 8, devices[7].Id)
+
+  device := devices[0]
+  assertEquals(t, "name", "Other", device.Name)
+  assertEquals(t, "icon", "other.png", device.Icon)
+  assertEquals(t, "info url", "/list-of-ua/device-detail?device=Other", device.InfoURL)
+}
