@@ -7,6 +7,34 @@ import (
   "testing"
 )
 
+func loadManifest(fileName string) *Manifest {
+  filePath, err := filepath.Abs(fmt.Sprintf("test/data/%s", fileName))
+  if err != nil {
+    fmt.Println(err)
+    os.Exit(1)
+  }
+
+  file, err := os.Open(filePath)
+  if err != nil {
+    fmt.Println(err)
+    os.Exit(1)
+  }
+  defer file.Close()
+
+  manifest, err := Load(file)
+  if err != nil {
+    fmt.Println(err)
+    os.Exit(1)
+  }
+  return manifest
+}
+
+var manifest *Manifest
+
+func init() {
+  manifest = loadManifest("uas-20140812-01.xml")
+}
+
 // helpers
 
 func assertEquals(t *testing.T, what string, expected interface{}, actual interface{}) {
@@ -15,8 +43,10 @@ func assertEquals(t *testing.T, what string, expected interface{}, actual interf
   }
 }
 
-func openDataFile(t *testing.T, name string) *os.File {
-  filePath, err := filepath.Abs(fmt.Sprintf("test/data/%s", name))
+// tests
+
+func TestLoad_PartialFile(t *testing.T) {
+  filePath, err := filepath.Abs("test/data/uas-partial-data.xml")
   if err != nil {
     t.Error(fmt.Sprintf("Unexpected error", err))
   }
@@ -25,27 +55,9 @@ func openDataFile(t *testing.T, name string) *os.File {
   if err != nil {
     t.Error("Unexpected error", err)
   }
-  return file
-}
-
-func loadManifest(t *testing.T, fileName string) *Manifest {
-  file := openDataFile(t, fileName)
   defer file.Close()
 
-  manifest, err := Load(file)
-  if err != nil {
-    t.Error("Unexpected error", err)
-  }
-  return manifest
-}
-
-// tests
-
-func TestLoad_PartialFile(t *testing.T) {
-  file := openDataFile(t, "uas-partial-data.xml")
-  defer file.Close()
-
-  _, err := Load(file)
+  _, err = Load(file)
   if err == nil {
     t.Error("Expected an error reading partial file")
   }
@@ -54,7 +66,6 @@ func TestLoad_PartialFile(t *testing.T) {
 }
 
 func TestLoadValidFile_Robots(t *testing.T) {
-  manifest := loadManifest(t, "uas-20140812-01.xml")
   robots := manifest.Data.Robots
   assertEquals(t, "length", 1387, len(robots))
   assertEquals(t, "first id", 14157, robots[0].Id)
@@ -74,7 +85,6 @@ func TestLoadValidFile_Robots(t *testing.T) {
 }
 
 func TestLoadValidFile_OperatingSystems(t *testing.T) {
-  manifest := loadManifest(t, "uas-20140812-01.xml")
   oses := manifest.Data.OperatingSystems
   assertEquals(t, "length", 122, len(oses))
   assertEquals(t, "first id", 1, oses[0].Id)
@@ -90,7 +100,6 @@ func TestLoadValidFile_OperatingSystems(t *testing.T) {
 }
 
 func TestLoadValidFile_Browsers(t *testing.T) {
-  manifest := loadManifest(t, "uas-20140812-01.xml")
   browsers := manifest.Data.Browsers
   assertEquals(t, "length", 463, len(browsers))
   assertEquals(t, "first id", 1, browsers[0].Id)
@@ -104,4 +113,21 @@ func TestLoadValidFile_Browsers(t *testing.T) {
   assertEquals(t, "url", "http://caminobrowser.org/", browser.URL)
   assertEquals(t, "type", 0, browser.Type)
   assertEquals(t, "info url", "/list-of-ua/browser-detail?browser=Camino", browser.InfoURL)
+}
+
+func TestLoadValidFile_BrowserRegs(t *testing.T) {
+  regs := manifest.Data.BrowsersReg
+  assertEquals(t, "length", 628, len(regs))
+  assertEquals(t, "first order", 1, regs[0].Order)
+  assertEquals(t, "last order", 628, regs[627].Order)
+
+  reg := regs[627]
+  assertEquals(t, "browser id", 282, reg.BrowserId)
+  assertEquals(t, "regstring", "/WinHttp/si", reg.RegString)
+
+  // check actual regs
+  assertEquals(t, "complex regstring",
+    "(?si:^Mozilla.*Android.*AppleWebKit.*Chrome.*OPR\\/([0-9\\.]+))",
+    regs[0].Reg.String())
+  assertEquals(t, "simple regstring", "(?si:WinHttp)", regs[627].Reg.String())
 }

@@ -3,6 +3,7 @@ package uas
 
 import (
   "encoding/xml"
+  "regexp"
 )
 
 type Entity struct {
@@ -40,24 +41,26 @@ type BrowserType struct {
   Id       int    `xml:"id"`
   TypeName string `xml:"type"`
 }
-type BrowserReg struct {
-  Order     int    `xml:"order"`
-  BrowserId int    `xml:"browser_id"`
-  RegString string `xml:"regstring"`
-}
 type BrowserOs struct {
   BrowserId int `xml:"browser_id"`
   OsId      int `xml:"os_id"`
 }
-type OsReg struct {
+type RegEntity struct {
   Order     int    `xml:"order"`
-  OsId      int    `xml:"os_id"`
   RegString string `xml:"regstring"`
+  Reg       *regexp.Regexp
+}
+type BrowserReg struct {
+  RegEntity
+  BrowserId int `xml:"browser_id"`
+}
+type OsReg struct {
+  RegEntity
+  OsId int `xml:"os_id"`
 }
 type DeviceReg struct {
-  Order     int    `xml:"order"`
-  DeviceId  int    `xml:"device_id"`
-  RegString string `xml:"regstring"`
+  RegEntity
+  DeviceId int `xml:"device_id"`
 }
 type Data struct {
   XMLName             xml.Name      `xml:"data"`
