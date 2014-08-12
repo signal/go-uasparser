@@ -1,0 +1,16 @@
+# build artifacts
+pkg/*
+
+# language
+.go
+
+# editor tools
+.tags
+.tags_sorted_by_file
+*.sublime*
+
+# durrrr
+tmp/*
+
+# stupid osx shit
+.DS_Store

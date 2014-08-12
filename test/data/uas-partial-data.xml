@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE uasdata SYSTEM "http://user-agent-string.info/rpc/uasxmldata.dtd">
+<uasdata>
+	<description>
+		<label>Data (format xml) for UASparser - http://user-agent-string.info/download/UASparser</label>
+		<version>20140812-01</version>
+		<checksum type="MD5">http://user-agent-string.info/rpc/get_data.php?format=xml&amp;md5=y</checksum>
+		<checksum type="SHA1">http://user-agent-string.info/rpc/get_data.php?format=xml&amp;sha1=y</checksum>
+	</description>
+	<data>
