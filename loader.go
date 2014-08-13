@@ -13,34 +13,38 @@ func init() {
   regMatcher = regexp.MustCompile("^/(?P<reg>.*)/(?P<flags>[imsU]*)$")
 }
 
-func compileBrowserRegs(manifest *Manifest) {
-  for i, reg := range manifest.Data.BrowsersReg {
-    manifest.Data.BrowsersReg[i].Reg = regexp.MustCompile(
-      regMatcher.ReplaceAllString(reg.RegString, "(?${flags}:${reg})"))
+func compileReg(reg string) *regexp.Regexp {
+  return regexp.MustCompile(regMatcher.ReplaceAllString(reg, "(?${flags}:${reg})"))
+}
+
+func compileBrowserRegs(data *Data) {
+  regs := data.BrowsersReg
+  for i, reg := range regs {
+    regs[i].Reg = compileReg(reg.RegString)
   }
 }
 
-func compileOsRegs(manifest *Manifest) {
-  for i, reg := range manifest.Data.OperatingSystemsReg {
-    manifest.Data.OperatingSystemsReg[i].Reg = regexp.MustCompile(
-      regMatcher.ReplaceAllString(reg.RegString, "(?${flags}:${reg})"))
+func compileOsRegs(data *Data) {
+  regs := data.OperatingSystemsReg
+  for i, reg := range regs {
+    regs[i].Reg = compileReg(reg.RegString)
   }
 }
 
-func compileDeviceRegs(manifest *Manifest) {
-  for i, reg := range manifest.Data.DevicesReg {
-    manifest.Data.DevicesReg[i].Reg = regexp.MustCompile(
-      regMatcher.ReplaceAllString(reg.RegString, "(?${flags}:${reg})"))
+func compileDeviceRegs(data *Data) {
+  regs := data.DevicesReg
+  for i, reg := range regs {
+    regs[i].Reg = compileReg(reg.RegString)
   }
 }
 
 func Load(reader io.Reader) (*Manifest, error) {
-  var manifest Manifest
-  if err := xml.NewDecoder(reader).Decode(&manifest); err != nil {
+  manifest := &Manifest{}
+  if err := xml.NewDecoder(reader).Decode(manifest); err != nil {
     return nil, err
   }
-  compileBrowserRegs(&manifest)
-  compileOsRegs(&manifest)
-  compileDeviceRegs(&manifest)
-  return &manifest, nil
+  compileBrowserRegs(manifest.Data)
+  compileOsRegs(manifest.Data)
+  compileDeviceRegs(manifest.Data)
+  return manifest, nil
 }
