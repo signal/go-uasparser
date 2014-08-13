@@ -7,42 +7,6 @@ import (
   "testing"
 )
 
-func loadManifest(fileName string) *Manifest {
-  filePath, err := filepath.Abs(fmt.Sprintf("test/data/%s", fileName))
-  if err != nil {
-    fmt.Println(err)
-    os.Exit(1)
-  }
-
-  file, err := os.Open(filePath)
-  if err != nil {
-    fmt.Println(err)
-    os.Exit(1)
-  }
-  defer file.Close()
-
-  manifest, err := Load(file)
-  if err != nil {
-    fmt.Println(err)
-    os.Exit(1)
-  }
-  return manifest
-}
-
-var manifest *Manifest
-
-func init() {
-  manifest = loadManifest("uas-20140812-01.xml")
-}
-
-// helpers
-
-func assertEquals(t *testing.T, what string, expected interface{}, actual interface{}) {
-  if expected != actual {
-    t.Error("Expected", what, "to be", expected, "but instead was", actual, "instead")
-  }
-}
-
 // tests
 
 func TestLoad_PartialFile(t *testing.T) {
@@ -62,130 +26,150 @@ func TestLoad_PartialFile(t *testing.T) {
     t.Error("Expected an error reading partial file")
   }
 
-  assertEquals(t, "error message reading file", err.Error(), "EOF")
+  AssertEquals(t, "error message reading file", err.Error(), "EOF")
 }
 
 func TestLoadValidFile_Robots(t *testing.T) {
+  manifest := LoadManifest("uas-20140812-01.xml")
   robots := manifest.Data.Robots
-  assertEquals(t, "length", 1387, len(robots))
-  assertEquals(t, "first id", 14157, robots[0].Id)
-  assertEquals(t, "last id", 3441, robots[1386].Id)
+  AssertEquals(t, "length", 1387, len(robots))
+  AssertEquals(t, "first id", 14157, robots[0].Id)
+  AssertEquals(t, "last id", 3441, robots[1386].Id)
 
   robot := robots[0]
-  assertEquals(t, "name", " Scrubby/3.1", robot.Name)
-  assertEquals(t, "company", "Scrub The Web", robot.Company)
-  assertEquals(t, "url company", "http://www.scrubtheweb.com/", robot.URLCompany)
-  assertEquals(t, "icon", "bot_scrub.png", robot.Icon)
-  assertEquals(t, "family", " Scrubby", robot.Family)
-  assertEquals(t,
+  AssertEquals(t, "name", " Scrubby/3.1", robot.Name)
+  AssertEquals(t, "company", "Scrub The Web", robot.Company)
+  AssertEquals(t, "url company", "http://www.scrubtheweb.com/", robot.URLCompany)
+  AssertEquals(t, "icon", "bot_scrub.png", robot.Icon)
+  AssertEquals(t, "family", " Scrubby", robot.Family)
+  AssertEquals(t,
     "user agent",
     "Mozilla/5.0 (compatible; Scrubby/3.1; +http://www.scrubtheweb.com/help/technology.html)",
     robot.UserAgent)
-  assertEquals(t, "info url", "/list-of-ua/bot-detail?bot= Scrubby", robot.InfoURL)
+  AssertEquals(t, "info url", "/list-of-ua/bot-detail?bot= Scrubby", robot.InfoURL)
 }
 
 func TestLoadValidFile_OperatingSystems(t *testing.T) {
+  manifest := LoadManifest("uas-20140812-01.xml")
   oses := manifest.Data.OperatingSystems
-  assertEquals(t, "length", 122, len(oses))
-  assertEquals(t, "first id", 1, oses[0].Id)
-  assertEquals(t, "last id", 146, oses[121].Id)
+  AssertEquals(t, "length", 122, len(oses))
+  AssertEquals(t, "first id", 1, oses[0].Id)
+  AssertEquals(t, "last id", 146, oses[121].Id)
 
   os := oses[0]
-  assertEquals(t, "name", "Windows XP", os.Name)
-  assertEquals(t, "company", "Microsoft Corporation.", os.Company)
-  assertEquals(t, "url company", "http://www.microsoft.com/", os.URLCompany)
-  assertEquals(t, "icon", "windowsxp.png", os.Icon)
-  assertEquals(t, "family", "Windows", os.Family)
-  assertEquals(t, "info url", "/list-of-ua/os-detail?os=Windows XP", os.InfoURL)
+  AssertEquals(t, "name", "Windows XP", os.Name)
+  AssertEquals(t, "company", "Microsoft Corporation.", os.Company)
+  AssertEquals(t, "url company", "http://www.microsoft.com/", os.URLCompany)
+  AssertEquals(t, "icon", "windowsxp.png", os.Icon)
+  AssertEquals(t, "family", "Windows", os.Family)
+  AssertEquals(t, "info url", "/list-of-ua/os-detail?os=Windows XP", os.InfoURL)
 }
 
 func TestLoadValidFile_Browsers(t *testing.T) {
+  manifest := LoadManifest("uas-20140812-01.xml")
   browsers := manifest.Data.Browsers
-  assertEquals(t, "length", 463, len(browsers))
-  assertEquals(t, "first id", 1, browsers[0].Id)
-  assertEquals(t, "last id", 526, browsers[462].Id)
+  AssertEquals(t, "length", 463, len(browsers))
+  AssertEquals(t, "first id", 1, browsers[0].Id)
+  AssertEquals(t, "last id", 526, browsers[462].Id)
 
   browser := browsers[0]
-  assertEquals(t, "name", "Camino", browser.Name)
-  assertEquals(t, "company", "Mozilla Foundation", browser.Company)
-  assertEquals(t, "url company", "http://www.mozilla.org/", browser.URLCompany)
-  assertEquals(t, "icon", "camino.png", browser.Icon)
-  assertEquals(t, "url", "http://caminobrowser.org/", browser.URL)
-  assertEquals(t, "type", 0, browser.Type)
-  assertEquals(t, "info url", "/list-of-ua/browser-detail?browser=Camino", browser.InfoURL)
+  AssertEquals(t, "name", "Camino", browser.Name)
+  AssertEquals(t, "company", "Mozilla Foundation", browser.Company)
+  AssertEquals(t, "url company", "http://www.mozilla.org/", browser.URLCompany)
+  AssertEquals(t, "icon", "camino.png", browser.Icon)
+  AssertEquals(t, "url", "http://caminobrowser.org/", browser.URL)
+  AssertEquals(t, "type id", 0, browser.TypeId)
+  AssertEquals(t, "info url", "/list-of-ua/browser-detail?browser=Camino", browser.InfoURL)
+}
+
+func TestLoadValidFile_BrowserTypes(t *testing.T) {
+  manifest := LoadManifest("uas-20140812-01.xml")
+  types := manifest.Data.BrowserTypes
+  AssertEquals(t, "length", 11, len(types))
+
+  AssertEquals(t, "first type id", 0, types[0].Id)
+  AssertEquals(t, "first type name", "Browser", types[0].Type)
+
+  AssertEquals(t, "last type id", 50, types[10].Id)
+  AssertEquals(t, "last type name", "Useragent Anonymizer", types[10].Type)
 }
 
 func TestLoadValidFile_BrowserRegs(t *testing.T) {
+  manifest := LoadManifest("uas-20140812-01.xml")
   regs := manifest.Data.BrowsersReg
-  assertEquals(t, "length", 628, len(regs))
-  assertEquals(t, "first order", 1, regs[0].Order)
-  assertEquals(t, "last order", 628, regs[627].Order)
+  AssertEquals(t, "length", 628, len(regs))
+  AssertEquals(t, "first order", 1, regs[0].Order)
+  AssertEquals(t, "last order", 628, regs[627].Order)
 
   reg := regs[627]
-  assertEquals(t, "browser id", 282, reg.BrowserId)
-  assertEquals(t, "regstring", "/WinHttp/si", reg.RegString)
+  AssertEquals(t, "browser id", 282, reg.BrowserId)
+  AssertEquals(t, "regstring", "/WinHttp/si", reg.RegString)
 
   // check actual regs
-  assertEquals(t, "complex regstring",
+  AssertEquals(t, "complex regstring",
     "(?si:^Mozilla.*Android.*AppleWebKit.*Chrome.*OPR\\/([0-9\\.]+))",
     regs[0].Reg.String())
-  assertEquals(t, "simple regstring", "(?si:WinHttp)", regs[627].Reg.String())
+  AssertEquals(t, "simple regstring", "(?si:WinHttp)", regs[627].Reg.String())
 }
 
 func TestLoadValidFile_BrowserOperatingSystems(t *testing.T) {
+  manifest := LoadManifest("uas-20140812-01.xml")
   oses := manifest.Data.BrowsersOs
-  assertEquals(t, "length", 72, len(oses))
-  assertEquals(t, "first browser id", 18, oses[0].BrowserId)
-  assertEquals(t, "first os id", 44, oses[0].OsId)
+  AssertEquals(t, "length", 72, len(oses))
+  AssertEquals(t, "first browser id", 18, oses[0].BrowserId)
+  AssertEquals(t, "first os id", 44, oses[0].OsId)
 
-  assertEquals(t, "last browser id", 515, oses[71].BrowserId)
-  assertEquals(t, "last os id", 87, oses[71].OsId)
+  AssertEquals(t, "last browser id", 515, oses[71].BrowserId)
+  AssertEquals(t, "last os id", 87, oses[71].OsId)
 }
 
 func TestLoadValidFile_OperatingSystemRegs(t *testing.T) {
+  manifest := LoadManifest("uas-20140812-01.xml")
   regs := manifest.Data.OperatingSystemsReg
-  assertEquals(t, "length", 219, len(regs))
-  assertEquals(t, "first order", 1, regs[0].Order)
-  assertEquals(t, "last order", 219, regs[218].Order)
+  AssertEquals(t, "length", 219, len(regs))
+  AssertEquals(t, "first order", 1, regs[0].Order)
+  AssertEquals(t, "last order", 219, regs[218].Order)
 
   reg := regs[0]
-  assertEquals(t, "os id", 35, reg.OsId)
-  assertEquals(t, "regstring", "/palm/si", reg.RegString)
+  AssertEquals(t, "os id", 35, reg.OsId)
+  AssertEquals(t, "regstring", "/palm/si", reg.RegString)
 
   // check actual regs
-  assertEquals(t, "complex regstring",
+  AssertEquals(t, "complex regstring",
     "(?si:^Mozilla\\/.*Ubuntu.*[Tablet|Mobile].*WebKit)",
     regs[22].Reg.String())
-  assertEquals(t, "simple regstring", "(?si:palm)", regs[0].Reg.String())
+  AssertEquals(t, "simple regstring", "(?si:palm)", regs[0].Reg.String())
 }
 
 func TestLoadValidFile_Devices(t *testing.T) {
+  manifest := LoadManifest("uas-20140812-01.xml")
   devices := manifest.Data.Devices
-  assertEquals(t, "length", 8, len(devices))
-  assertEquals(t, "first id", 1, devices[0].Id)
-  assertEquals(t, "last id", 8, devices[7].Id)
+  AssertEquals(t, "length", 8, len(devices))
+  AssertEquals(t, "first id", 1, devices[0].Id)
+  AssertEquals(t, "last id", 8, devices[7].Id)
 
   device := devices[0]
-  assertEquals(t, "name", "Other", device.Name)
-  assertEquals(t, "icon", "other.png", device.Icon)
-  assertEquals(t, "info url", "/list-of-ua/device-detail?device=Other", device.InfoURL)
+  AssertEquals(t, "name", "Other", device.Name)
+  AssertEquals(t, "icon", "other.png", device.Icon)
+  AssertEquals(t, "info url", "/list-of-ua/device-detail?device=Other", device.InfoURL)
 }
 
 func TestLoadValidFile_DeviceRegs(t *testing.T) {
+  manifest := LoadManifest("uas-20140812-01.xml")
   regs := manifest.Data.DevicesReg
-  assertEquals(t, "length", 108, len(regs))
-  assertEquals(t, "first order", 1, regs[0].Order)
-  assertEquals(t, "last order", 108, regs[107].Order)
+  AssertEquals(t, "length", 108, len(regs))
+  AssertEquals(t, "first order", 1, regs[0].Order)
+  AssertEquals(t, "last order", 108, regs[107].Order)
 
   reg := regs[107]
-  assertEquals(t, "device id", 4, reg.DeviceId)
-  assertEquals(t, "regstring", "/^Mozilla.*Android.*Tablet.*AppleWebKit/si", reg.RegString)
+  AssertEquals(t, "device id", 4, reg.DeviceId)
+  AssertEquals(t, "regstring", "/^Mozilla.*Android.*Tablet.*AppleWebKit/si", reg.RegString)
 
   // check actual regs
-  assertEquals(t, "simple regstring",
+  AssertEquals(t, "simple regstring",
     "(?si:^Mozilla.*Android.*Tablet.*AppleWebKit)",
     regs[107].Reg.String())
-  assertEquals(t, "complex regstring",
+  AssertEquals(t, "complex regstring",
     "(?si:^Mozilla.*Android.*GT\\-("+
       "P1000|P1010|P3100|P3105|P3110|P3113|P5100|P5110|P5113|P5200|P5210|P6200|P6201|P6210|P6211"+
       "|P6800|P6810|P7110|P7300|P7310|P7320|P7500|P7510|P7511))",
@@ -195,20 +179,21 @@ func TestLoadValidFile_DeviceRegs(t *testing.T) {
 // description
 
 func TestLoadValidFile_Description(t *testing.T) {
+  manifest := LoadManifest("uas-20140812-01.xml")
   description := manifest.Description
-  assertEquals(t, "label",
+  AssertEquals(t, "label",
     "Data (format xml) for UASparser - http://user-agent-string.info/download/UASparser",
     description.Label)
-  assertEquals(t, "version", "20140812-01", description.Version)
-  assertEquals(t, "checksum length", 2, len(description.Checksums))
+  AssertEquals(t, "version", "20140812-01", description.Version)
+  AssertEquals(t, "checksum length", 2, len(description.Checksums))
 
-  assertEquals(t, "first checksum type", "MD5", description.Checksums[0].Type)
-  assertEquals(t, "first checksum url",
+  AssertEquals(t, "first checksum type", "MD5", description.Checksums[0].Type)
+  AssertEquals(t, "first checksum url",
     "http://user-agent-string.info/rpc/get_data.php?format=xml&amp;md5=y",
     description.Checksums[0].URL)
 
-  assertEquals(t, "second checksum type", "SHA1", description.Checksums[1].Type)
-  assertEquals(t, "second checksum url",
+  AssertEquals(t, "second checksum type", "SHA1", description.Checksums[1].Type)
+  AssertEquals(t, "second checksum url",
     "http://user-agent-string.info/rpc/get_data.php?format=xml&amp;sha1=y",
     description.Checksums[1].URL)
 }

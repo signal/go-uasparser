@@ -37,13 +37,13 @@ type OsReg struct {
 }
 type Browser struct {
   entity
-  Type    int    `xml:"type"`
+  TypeId  int    `xml:"type"`
   URL     string `xml:"url"`
   InfoURL string `xml:"browser_info_url"`
 }
 type BrowserType struct {
-  Id       int    `xml:"id"`
-  TypeName string `xml:"type"`
+  Id   int    `xml:"id"`
+  Type string `xml:"type"`
 }
 type BrowserOs struct {
   BrowserId int `xml:"browser_id"`
@@ -91,4 +91,6 @@ type Manifest struct {
   XMLName     xml.Name `xml:"uasdata"`
   Description *Description
   Data        *Data
+  unknownOs   *Os
+  otherDevice *Device
 }
