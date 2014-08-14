@@ -60,3 +60,41 @@ func TestParse_FindOperaMobileBrowser(t *testing.T) {
   AssertDeepEquals(t, "agent os", os, agent.Os)
   AssertDeepEquals(t, "agent device", device, agent.Device)
 }
+
+func TestParse_FindAgentWithBrowserOsMapping(t *testing.T) {
+  manifest := LoadManifest("uas-20140812-01.xml")
+  ua := "Mozilla/5.0 (Macintosh; U; Intel Mac OS X; en-US) AppleWebKit/528.16 (KHTML, like Gecko, Safari/528.16) OmniWeb/v622.8.0.112941"
+
+  browser, ok := manifest.GetBrowser(18) // OmniWeb
+  Asserts(t, "browser found", ok)
+  os, ok := manifest.GetOs(44) // Mac OS
+  Asserts(t, "os found", ok)
+  device, ok := manifest.GetDevice(1) // Other
+  Asserts(t, "device found", ok)
+
+  agent := manifest.ParseBrowser(ua)
+  AssertEquals(t, "agent string", ua, agent.String)
+  AssertEquals(t, "agent type", "Browser", agent.Type)
+  AssertDeepEquals(t, "agent browser", browser, agent.Browser)
+  AssertDeepEquals(t, "agent os", os, agent.Os)
+  AssertDeepEquals(t, "agent device", device, agent.Device)
+}
+
+func TestParse_BrowserFoundButUnknownOs(t *testing.T) {
+  manifest := LoadManifest("uas-20140812-01.xml")
+  ua := "Mozilla/4.0 (compatible; DPlus 0.5)"
+
+  browser, ok := manifest.GetBrowser(441) // DPlus
+  Asserts(t, "browser found", ok)
+  os, ok := manifest.FindOsByName(UnknownOsName)
+  Asserts(t, "os found", ok)
+  device, ok := manifest.GetDevice(1) // Other
+  Asserts(t, "device found", ok)
+
+  agent := manifest.ParseBrowser(ua)
+  AssertEquals(t, "agent string", ua, agent.String)
+  AssertEquals(t, "agent type", "Browser", agent.Type)
+  AssertDeepEquals(t, "agent browser", browser, agent.Browser)
+  AssertDeepEquals(t, "agent os", os, agent.Os)
+  AssertDeepEquals(t, "agent device", device, agent.Device)
+}

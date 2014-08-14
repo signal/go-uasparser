@@ -6,6 +6,12 @@ import (
   "regexp"
 )
 
+const (
+  OtherBrowserTypeName = "Other"
+  UnknownOsName        = "unknown"
+  OtherDeviceName      = "Other"
+)
+
 type regEntity struct {
   Order     int    `xml:"order"`
   RegString string `xml:"regstring"`
@@ -43,7 +49,7 @@ type Browser struct {
 }
 type BrowserType struct {
   Id   int    `xml:"id"`
-  Type string `xml:"type"`
+  Name string `xml:"type"` // a purposeful departure from the UAS naming
 }
 type BrowserOs struct {
   BrowserId int `xml:"browser_id"`
@@ -91,6 +97,17 @@ type Manifest struct {
   XMLName     xml.Name `xml:"uasdata"`
   Description *Description
   Data        *Data
-  unknownOs   *Os
-  otherDevice *Device
+
+  // for memoization
+  otherBrowserType *BrowserType
+  unknownOs        *Os
+  otherDevice      *Device
+}
+
+type Agent struct {
+  String  string
+  Type    string
+  Browser *Browser
+  Os      *Os
+  Device  *Device
 }

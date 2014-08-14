@@ -88,10 +88,10 @@ func TestLoadValidFile_BrowserTypes(t *testing.T) {
   AssertEquals(t, "length", 11, len(types))
 
   AssertEquals(t, "first type id", 0, types[0].Id)
-  AssertEquals(t, "first type name", "Browser", types[0].Type)
+  AssertEquals(t, "first type name", "Browser", types[0].Name)
 
   AssertEquals(t, "last type id", 50, types[10].Id)
-  AssertEquals(t, "last type name", "Useragent Anonymizer", types[10].Type)
+  AssertEquals(t, "last type name", "Useragent Anonymizer", types[10].Name)
 }
 
 func TestLoadValidFile_BrowserRegs(t *testing.T) {
