@@ -4,6 +4,7 @@ package uas
 import (
   "encoding/xml"
   "io"
+  "os"
   "regexp"
 )
 
@@ -47,4 +48,14 @@ func Load(reader io.Reader) (*Manifest, error) {
   compileOsRegs(manifest.Data)
   compileDeviceRegs(manifest.Data)
   return manifest, nil
+}
+
+func LoadFile(path string) (*Manifest, error) {
+  file, err := os.Open(path)
+  if err != nil {
+    return nil, err
+  }
+  defer file.Close()
+
+  return Load(file)
 }

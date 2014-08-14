@@ -7,6 +7,29 @@ import (
   "testing"
 )
 
+// setup
+
+func loadManifest(fileName string) *Manifest {
+  filePath, err := filepath.Abs(fmt.Sprintf("test/data/%s", fileName))
+  if err != nil {
+    fmt.Println(err)
+    os.Exit(1)
+  }
+
+  manifest, err := LoadFile(filePath)
+  if err != nil {
+    fmt.Println(err)
+    os.Exit(1)
+  }
+  return manifest
+}
+
+var manifest *Manifest
+
+func init() {
+  manifest = loadManifest("uas-20140812-01.xml")
+}
+
 // tests
 
 func TestLoad_PartialFile(t *testing.T) {
@@ -30,7 +53,6 @@ func TestLoad_PartialFile(t *testing.T) {
 }
 
 func TestLoadValidFile_Robots(t *testing.T) {
-  manifest := LoadManifest("uas-20140812-01.xml")
   robots := manifest.Data.Robots
   AssertEquals(t, "length", 1387, len(robots))
   AssertEquals(t, "first id", 14157, robots[0].Id)
@@ -50,7 +72,6 @@ func TestLoadValidFile_Robots(t *testing.T) {
 }
 
 func TestLoadValidFile_OperatingSystems(t *testing.T) {
-  manifest := LoadManifest("uas-20140812-01.xml")
   oses := manifest.Data.OperatingSystems
   AssertEquals(t, "length", 122, len(oses))
   AssertEquals(t, "first id", 1, oses[0].Id)
@@ -66,7 +87,6 @@ func TestLoadValidFile_OperatingSystems(t *testing.T) {
 }
 
 func TestLoadValidFile_Browsers(t *testing.T) {
-  manifest := LoadManifest("uas-20140812-01.xml")
   browsers := manifest.Data.Browsers
   AssertEquals(t, "length", 463, len(browsers))
   AssertEquals(t, "first id", 1, browsers[0].Id)
@@ -83,7 +103,6 @@ func TestLoadValidFile_Browsers(t *testing.T) {
 }
 
 func TestLoadValidFile_BrowserTypes(t *testing.T) {
-  manifest := LoadManifest("uas-20140812-01.xml")
   types := manifest.Data.BrowserTypes
   AssertEquals(t, "length", 11, len(types))
 
@@ -95,7 +114,6 @@ func TestLoadValidFile_BrowserTypes(t *testing.T) {
 }
 
 func TestLoadValidFile_BrowserRegs(t *testing.T) {
-  manifest := LoadManifest("uas-20140812-01.xml")
   regs := manifest.Data.BrowsersReg
   AssertEquals(t, "length", 628, len(regs))
   AssertEquals(t, "first order", 1, regs[0].Order)
@@ -113,7 +131,6 @@ func TestLoadValidFile_BrowserRegs(t *testing.T) {
 }
 
 func TestLoadValidFile_BrowserOperatingSystems(t *testing.T) {
-  manifest := LoadManifest("uas-20140812-01.xml")
   oses := manifest.Data.BrowsersOs
   AssertEquals(t, "length", 72, len(oses))
   AssertEquals(t, "first browser id", 18, oses[0].BrowserId)
@@ -124,7 +141,6 @@ func TestLoadValidFile_BrowserOperatingSystems(t *testing.T) {
 }
 
 func TestLoadValidFile_OperatingSystemRegs(t *testing.T) {
-  manifest := LoadManifest("uas-20140812-01.xml")
   regs := manifest.Data.OperatingSystemsReg
   AssertEquals(t, "length", 219, len(regs))
   AssertEquals(t, "first order", 1, regs[0].Order)
@@ -142,7 +158,6 @@ func TestLoadValidFile_OperatingSystemRegs(t *testing.T) {
 }
 
 func TestLoadValidFile_Devices(t *testing.T) {
-  manifest := LoadManifest("uas-20140812-01.xml")
   devices := manifest.Data.Devices
   AssertEquals(t, "length", 8, len(devices))
   AssertEquals(t, "first id", 1, devices[0].Id)
@@ -155,7 +170,6 @@ func TestLoadValidFile_Devices(t *testing.T) {
 }
 
 func TestLoadValidFile_DeviceRegs(t *testing.T) {
-  manifest := LoadManifest("uas-20140812-01.xml")
   regs := manifest.Data.DevicesReg
   AssertEquals(t, "length", 108, len(regs))
   AssertEquals(t, "first order", 1, regs[0].Order)
@@ -179,7 +193,6 @@ func TestLoadValidFile_DeviceRegs(t *testing.T) {
 // description
 
 func TestLoadValidFile_Description(t *testing.T) {
-  manifest := LoadManifest("uas-20140812-01.xml")
   description := manifest.Description
   AssertEquals(t, "label",
     "Data (format xml) for UASparser - http://user-agent-string.info/download/UASparser",
@@ -196,4 +209,93 @@ func TestLoadValidFile_Description(t *testing.T) {
   AssertEquals(t, "second checksum url",
     "http://user-agent-string.info/rpc/get_data.php?format=xml&amp;sha1=y",
     description.Checksums[1].URL)
+}
+
+// robots
+
+func Test_NoRobotFound(t *testing.T) {
+  ua := "GonzoBotz/1.0"
+  _, ok := manifest.FindRobot(ua)
+  Asserts(t, "no robot found", !ok)
+}
+
+func TestFindFirstRobot(t *testing.T) {
+  ua := "Mozilla/5.0 (compatible; Scrubby/3.1; +http://www.scrubtheweb.com/help/technology.html)"
+  robot, ok := manifest.FindRobot(ua)
+  Asserts(t, "found robot", ok)
+  AssertDeepEquals(t, "robot", manifest.Data.Robots[0], robot)
+}
+
+func TestFindLastRobot(t *testing.T) {
+  ua := "^Nail (http://CaretNail.com)"
+  robot, ok := manifest.FindRobot(ua)
+  Asserts(t, "found robot", ok)
+  AssertDeepEquals(t, "robot", manifest.Data.Robots[len(manifest.Data.Robots)-1], robot)
+}
+
+// browsers
+
+func TestParse_NoUAProvided(t *testing.T) {
+  AssertDeepEquals(t, "browser agent", &Agent{}, manifest.ParseBrowser(""))
+}
+
+func TestParse_WhenRobotUAProvided(t *testing.T) {
+  ua := "Mozilla/5.0 (compatible; Scrubby/3.1; +http://www.scrubtheweb.com/help/technology.html)"
+  AssertDeepEquals(t, "browser agent", &Agent{}, manifest.ParseBrowser(ua))
+}
+
+func TestParse_FindOperaMobileBrowser(t *testing.T) {
+  ua := "Mozilla/5.0 (Linux; Android 2.3.4; MT11i Build/4.0.2.A.0.62) AppleWebKit/537.22 " +
+    "(KHTML, like Gecko) Chrome/25.0.1364.123 Mobile Safari/537.22 OPR/14.0.1025.52315"
+
+  browser, ok := manifest.GetBrowser(321) // Opera Mobile
+  Asserts(t, "browser found", ok)
+  os, ok := manifest.GetOs(107) // Android, Gingerbread
+  Asserts(t, "os found", ok)
+  device, ok := manifest.GetDevice(1) // Other
+  Asserts(t, "device found", ok)
+
+  agent := manifest.ParseBrowser(ua)
+  AssertEquals(t, "agent string", ua, agent.String)
+  AssertEquals(t, "agent type", "Mobile Browser", agent.Type)
+  AssertDeepEquals(t, "agent browser", browser, agent.Browser)
+  AssertDeepEquals(t, "agent os", os, agent.Os)
+  AssertDeepEquals(t, "agent device", device, agent.Device)
+}
+
+func TestParse_FindAgentWithBrowserOsMapping(t *testing.T) {
+  ua := "Mozilla/5.0 (Macintosh; U; Intel Mac OS X; en-US) AppleWebKit/528.16 " +
+    "(KHTML, like Gecko, Safari/528.16) OmniWeb/v622.8.0.112941"
+
+  browser, ok := manifest.GetBrowser(18) // OmniWeb
+  Asserts(t, "browser found", ok)
+  os, ok := manifest.GetOs(44) // Mac OS
+  Asserts(t, "os found", ok)
+  device, ok := manifest.GetDevice(1) // Other
+  Asserts(t, "device found", ok)
+
+  agent := manifest.ParseBrowser(ua)
+  AssertEquals(t, "agent string", ua, agent.String)
+  AssertEquals(t, "agent type", "Browser", agent.Type)
+  AssertDeepEquals(t, "agent browser", browser, agent.Browser)
+  AssertDeepEquals(t, "agent os", os, agent.Os)
+  AssertDeepEquals(t, "agent device", device, agent.Device)
+}
+
+func TestParse_BrowserFoundButUnknownOs(t *testing.T) {
+  ua := "Mozilla/4.0 (compatible; DPlus 0.5)"
+
+  browser, ok := manifest.GetBrowser(441) // DPlus
+  Asserts(t, "browser found", ok)
+  os, ok := manifest.FindOsByName(UnknownOsName)
+  Asserts(t, "os found", ok)
+  device, ok := manifest.GetDevice(1) // Other
+  Asserts(t, "device found", ok)
+
+  agent := manifest.ParseBrowser(ua)
+  AssertEquals(t, "agent string", ua, agent.String)
+  AssertEquals(t, "agent type", "Browser", agent.Type)
+  AssertDeepEquals(t, "agent browser", browser, agent.Browser)
+  AssertDeepEquals(t, "agent os", os, agent.Os)
+  AssertDeepEquals(t, "agent device", device, agent.Device)
 }

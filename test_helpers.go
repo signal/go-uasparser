@@ -1,36 +1,9 @@
 package uas
 
 import (
-  "fmt"
-  "os"
-  "path/filepath"
   "reflect"
   "testing"
 )
-
-func LoadManifest(fileName string) *Manifest {
-  filePath, err := filepath.Abs(fmt.Sprintf("test/data/%s", fileName))
-  if err != nil {
-    fmt.Println(err)
-    os.Exit(1)
-  }
-
-  file, err := os.Open(filePath)
-  if err != nil {
-    fmt.Println(err)
-    os.Exit(1)
-  }
-  defer file.Close()
-
-  manifest, err := Load(file)
-  if err != nil {
-    fmt.Println(err)
-    os.Exit(1)
-  }
-  return manifest
-}
-
-// helpers
 
 func Asserts(t *testing.T, what string, actual bool) {
   if !actual {
