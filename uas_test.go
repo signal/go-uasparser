@@ -236,12 +236,12 @@ func TestFindLastRobot(t *testing.T) {
 // browsers
 
 func TestParse_NoUAProvided(t *testing.T) {
-  AssertDeepEquals(t, "browser agent", &Agent{}, manifest.ParseBrowser(""))
+  Asserts(t, "no browser agent", manifest.ParseBrowser("") == nil)
 }
 
 func TestParse_WhenRobotUAProvided(t *testing.T) {
   ua := "Mozilla/5.0 (compatible; Scrubby/3.1; +http://www.scrubtheweb.com/help/technology.html)"
-  AssertDeepEquals(t, "browser agent", &Agent{}, manifest.ParseBrowser(ua))
+  Asserts(t, "no browser agent", manifest.ParseBrowser(ua) == nil)
 }
 
 func TestParse_FindOperaMobileBrowser(t *testing.T) {

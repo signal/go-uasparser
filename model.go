@@ -250,10 +250,12 @@ func (self *Manifest) parseDeviceFromUserAgent(ua string) *Device {
 }
 
 func (self *Manifest) ParseBrowser(ua string) *Agent {
-  agent := &Agent{}
+  var agent *Agent
 
   if !self.IsRobot(ua) {
-    if agent.Browser = self.parseBrowserFromUserAgent(ua); agent.Browser != nil {
+    if browser := self.parseBrowserFromUserAgent(ua); browser != nil {
+      agent = &Agent{}
+      agent.Browser = browser
       agent.String = ua
       browserType, found := self.GetBrowserType(agent.Browser.TypeId)
       if !found {
