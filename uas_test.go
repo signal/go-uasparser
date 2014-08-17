@@ -236,12 +236,12 @@ func TestFindLastRobot(t *testing.T) {
 // browsers
 
 func TestParse_NoUAProvided(t *testing.T) {
-	Asserts(t, "no browser agent", manifest.ParseBrowser("") == nil)
+	Asserts(t, "no browser agent", manifest.Parse("") == nil)
 }
 
 func TestParse_WhenRobotUAProvided(t *testing.T) {
 	ua := "Mozilla/5.0 (compatible; Scrubby/3.1; +http://www.scrubtheweb.com/help/technology.html)"
-	Asserts(t, "no browser agent", manifest.ParseBrowser(ua) == nil)
+	Asserts(t, "no browser agent", manifest.Parse(ua) == nil)
 }
 
 func TestParse_FindOperaMobileBrowser(t *testing.T) {
@@ -252,13 +252,14 @@ func TestParse_FindOperaMobileBrowser(t *testing.T) {
 	Asserts(t, "browser found", ok)
 	os, ok := manifest.GetOs(107) // Android, Gingerbread
 	Asserts(t, "os found", ok)
-	device, ok := manifest.GetDevice(1) // Other
+	device, ok := manifest.FindDeviceByName("Smartphone")
 	Asserts(t, "device found", ok)
 
-	agent := manifest.ParseBrowser(ua)
+	agent := manifest.Parse(ua)
 	AssertEquals(t, "agent string", ua, agent.String)
 	AssertEquals(t, "agent type", "Mobile Browser", agent.Type)
-	AssertDeepEquals(t, "agent browser", browser, agent.Browser)
+	AssertDeepEquals(t, "agent browser", browser, agent.BrowserVersion.Browser)
+	AssertDeepEquals(t, "agent browser version", "14.0.1025.52315", agent.BrowserVersion.Version)
 	AssertDeepEquals(t, "agent os", os, agent.Os)
 	AssertDeepEquals(t, "agent device", device, agent.Device)
 }
@@ -271,13 +272,14 @@ func TestParse_FindAgentWithBrowserOsMapping(t *testing.T) {
 	Asserts(t, "browser found", ok)
 	os, ok := manifest.GetOs(44) // Mac OS
 	Asserts(t, "os found", ok)
-	device, ok := manifest.GetDevice(1) // Other
+	device, ok := manifest.FindDeviceByName("Personal computer")
 	Asserts(t, "device found", ok)
 
-	agent := manifest.ParseBrowser(ua)
+	agent := manifest.Parse(ua)
 	AssertEquals(t, "agent string", ua, agent.String)
 	AssertEquals(t, "agent type", "Browser", agent.Type)
-	AssertDeepEquals(t, "agent browser", browser, agent.Browser)
+	AssertDeepEquals(t, "agent browser", browser, agent.BrowserVersion.Browser)
+	AssertDeepEquals(t, "agent browser version", "", agent.BrowserVersion.Version)
 	AssertDeepEquals(t, "agent os", os, agent.Os)
 	AssertDeepEquals(t, "agent device", device, agent.Device)
 }
@@ -289,13 +291,14 @@ func TestParse_BrowserFoundButUnknownOs(t *testing.T) {
 	Asserts(t, "browser found", ok)
 	os, ok := manifest.FindOsByName(UnknownOsName)
 	Asserts(t, "os found", ok)
-	device, ok := manifest.GetDevice(1) // Other
+	device, ok := manifest.FindDeviceByName("Personal computer")
 	Asserts(t, "device found", ok)
 
-	agent := manifest.ParseBrowser(ua)
+	agent := manifest.Parse(ua)
 	AssertEquals(t, "agent string", ua, agent.String)
 	AssertEquals(t, "agent type", "Browser", agent.Type)
-	AssertDeepEquals(t, "agent browser", browser, agent.Browser)
+	AssertDeepEquals(t, "agent browser", browser, agent.BrowserVersion.Browser)
+	AssertDeepEquals(t, "agent browser version", "0.5", agent.BrowserVersion.Version)
 	AssertDeepEquals(t, "agent os", os, agent.Os)
 	AssertDeepEquals(t, "agent device", device, agent.Device)
 }

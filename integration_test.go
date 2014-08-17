@@ -8,6 +8,15 @@ import (
 	"testing"
 )
 
+func loadCsvFile(path string) *os.File {
+	testFile, err := os.Open(path)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	return testFile
+}
+
 func TestIntegration_Browsers(t *testing.T) {
 	manifest, err := LoadFile("tmp/uas-manifest.xml")
 	if err != nil {
@@ -15,13 +24,8 @@ func TestIntegration_Browsers(t *testing.T) {
 		os.Exit(1)
 	}
 
-	testFile, err := os.Open("tmp/uas-browser-tests.csv")
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	testFile := loadCsvFile("tmp/uas-browser-tests.csv")
 	defer testFile.Close()
-
 	reader := csv.NewReader(testFile)
 	for {
 		line, err := reader.Read()
@@ -31,16 +35,16 @@ func TestIntegration_Browsers(t *testing.T) {
 
 		typeName, browserName, uastr := line[0], line[1], strings.Trim(line[2], " ")
 		if typeName == "robot" {
-			Asserts(t, "is a robot", manifest.IsRobot(uastr))
+			Asserts(t, fmt.Sprintf("[%s] to be a robot", uastr), manifest.IsRobot(uastr))
 		} else {
-			agent := manifest.ParseBrowser(uastr)
+			agent := manifest.Parse(uastr)
 
 			if agent != nil {
 				AssertEquals(t, fmt.Sprintf("type for [%s]", uastr), typeName, agent.Type)
-				AssertEquals(t, fmt.Sprintf("name for [%s]", uastr), browserName, agent.Browser.Name)
+				AssertEquals(t, fmt.Sprintf("name for [%s]", uastr), browserName, agent.BrowserVersion.Name)
 			} else {
 				t.Error("Expected to find agent with type:", typeName, "and browser:",
-					browserName, "for", uastr)
+					browserName, "for", uastr, "but found nothing")
 			}
 		}
 	}
@@ -53,13 +57,8 @@ func TestIntegration_OperatingSystems(t *testing.T) {
 		os.Exit(1)
 	}
 
-	testFile, err := os.Open("tmp/uas-os-tests.csv")
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	testFile := loadCsvFile("tmp/uas-os-tests.csv")
 	defer testFile.Close()
-
 	reader := csv.NewReader(testFile)
 	for {
 		line, err := reader.Read()
@@ -68,12 +67,19 @@ func TestIntegration_OperatingSystems(t *testing.T) {
 		}
 
 		osName, uastr := line[0], strings.Trim(line[1], " ")
-		agent := manifest.ParseBrowser(uastr)
+		os := manifest.ParseOs(uastr)
 
-		if agent != nil {
-			AssertEquals(t, fmt.Sprintf("name for [%s]", uastr), osName, agent.Os.Name)
+		if os != nil {
+			AssertEquals(t, fmt.Sprintf("name for [%s]", uastr), osName, os.Name)
 		} else {
-			t.Error("Expected to find agent with os:", osName, "for", uastr)
+			// if no device directly found, perhaps we can deduce it from the agent
+			agent := manifest.Parse(uastr)
+			if agent != nil {
+				AssertEquals(t, fmt.Sprintf("name for [%s]", uastr), osName, agent.Os.Name)
+			} else if !manifest.IsRobot(uastr) {
+				// whelp, it wasn't a robot either
+				t.Error("Expected to find agent with os:", osName, "for", uastr)
+			}
 		}
 	}
 }
@@ -85,13 +91,8 @@ func TestIntegration_Devices(t *testing.T) {
 		os.Exit(1)
 	}
 
-	testFile, err := os.Open("tmp/uas-device-tests.csv")
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	testFile := loadCsvFile("tmp/uas-device-tests.csv")
 	defer testFile.Close()
-
 	reader := csv.NewReader(testFile)
 	for {
 		line, err := reader.Read()
@@ -100,12 +101,19 @@ func TestIntegration_Devices(t *testing.T) {
 		}
 
 		deviceName, uastr := line[0], strings.Trim(line[1], " ")
-		agent := manifest.ParseBrowser(uastr)
+		device := manifest.ParseDevice(uastr)
 
-		if agent != nil {
-			AssertEquals(t, fmt.Sprintf("name for [%s]", uastr), deviceName, agent.Device.Name)
+		if device != nil {
+			AssertEquals(t, fmt.Sprintf("name for [%s]", uastr), deviceName, device.Name)
 		} else {
-			t.Error("Expected to find agent with device:", deviceName, "for", uastr)
+			agent := manifest.Parse(uastr)
+			// if no device directly found, perhaps we can deduce it from the agent
+			if agent != nil {
+				AssertEquals(t, fmt.Sprintf("name for [%s]", uastr), deviceName, agent.Device.Name)
+			} else if !manifest.IsRobot(uastr) {
+				// whelp, it wasn't a robot either
+				t.Error("Expected to find device:", deviceName, "for", uastr, "but found nothing")
+			}
 		}
 	}
 }

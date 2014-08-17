@@ -4,6 +4,7 @@ package uas
 import (
 	"encoding/xml"
 	"regexp"
+	"strings"
 )
 
 const (
@@ -104,12 +105,16 @@ type Manifest struct {
 	otherDevice      *Device
 }
 
+type BrowserVersion struct {
+	*Browser
+	Version string
+}
 type Agent struct {
-	String  string
-	Type    string
-	Browser *Browser
-	Os      *Os
-	Device  *Device
+	String         string
+	Type           string
+	BrowserVersion *BrowserVersion
+	Os             *Os
+	Device         *Device
 }
 
 func (self *Manifest) FindRobot(ua string) (*Robot, bool) {
@@ -219,57 +224,64 @@ func (self *Manifest) OtherDevice() *Device {
 	return self.otherDevice
 }
 
-func (self *Manifest) parseBrowserFromUserAgent(ua string) *Browser {
+func (self *Manifest) ParseBrowserVersion(ua string) *BrowserVersion {
 	for _, reg := range self.Data.BrowsersReg {
-		if reg.Reg.MatchString(ua) {
+		if matches := reg.Reg.FindStringSubmatch(ua); matches != nil {
 			browser, _ := self.GetBrowser(reg.BrowserId)
-			return browser
+			return &BrowserVersion{browser, strings.Join(matches[1:], "/")}
 		}
 	}
 	return nil
 }
 
-func (self *Manifest) parseOsFromUserAgent(ua string) *Os {
+func (self *Manifest) ParseOs(ua string) *Os {
 	for _, reg := range self.Data.OperatingSystemsReg {
 		if reg.Reg.MatchString(ua) {
 			os, _ := self.GetOs(reg.OsId)
 			return os
 		}
 	}
-	return self.UnknownOs()
+	return nil
 }
 
-func (self *Manifest) parseDeviceFromUserAgent(ua string) *Device {
+func (self *Manifest) ParseDevice(ua string) *Device {
 	for _, reg := range self.Data.DevicesReg {
 		if reg.Reg.MatchString(ua) {
 			device, _ := self.GetDevice(reg.DeviceId)
 			return device
 		}
 	}
-	return self.OtherDevice()
+	return nil
 }
 
-func (self *Manifest) ParseBrowser(ua string) *Agent {
+func (self *Manifest) Parse(ua string) *Agent {
 	var agent *Agent
 
 	if !self.IsRobot(ua) {
-		if browser := self.parseBrowserFromUserAgent(ua); browser != nil {
-			agent = &Agent{}
-			agent.Browser = browser
-			agent.String = ua
+		if browserVer := self.ParseBrowserVersion(ua); browserVer != nil {
+			agent = &Agent{String: ua, BrowserVersion: browserVer}
 
-			browserType, found := self.GetBrowserType(agent.Browser.TypeId)
+			browserType, found := self.GetBrowserType(browserVer.TypeId)
 			if !found {
 				browserType = self.OtherBrowserType()
 			}
 			agent.Type = browserType.Name
 
-			agent.Os, found = self.GetOsForBrowser(agent.Browser.Id)
-			if !found {
-				agent.Os = self.parseOsFromUserAgent(ua)
+			if agent.Os, found = self.GetOsForBrowser(browserVer.Id); !found {
+				if agent.Os = self.ParseOs(ua); agent.Os == nil {
+					agent.Os = self.UnknownOs()
+				}
 			}
 
-			agent.Device = self.parseDeviceFromUserAgent(ua)
+			if agent.Device = self.ParseDevice(ua); agent.Device == nil {
+				if agent.Type == "Other" || agent.Type == "Library" || agent.Type == "Validator" || agent.Type == "Useragent Anonymizer" {
+					agent.Device = self.OtherDevice()
+				} else if agent.Type == "Mobile Browser" || agent.Type == "Wap Browser" {
+					agent.Device, _ = self.FindDeviceByName("Smartphone")
+				} else {
+					agent.Device, _ = self.FindDeviceByName("Personal computer")
+				}
+			}
 		}
 	}
 
