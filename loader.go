@@ -11,7 +11,7 @@ import (
 var regMatcher *regexp.Regexp
 
 func init() {
-	regMatcher = regexp.MustCompile("^/(?P<reg>.*)/(?P<flags>[imsU]*)$")
+	regMatcher = regexp.MustCompile("^/(?P<reg>.*)/(?P<flags>[imsU]*)\\s*$")
 }
 
 func compileReg(reg string) *regexp.Regexp {
