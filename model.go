@@ -119,7 +119,7 @@ type Agent struct {
 
 func (self *Manifest) FindRobot(ua string) (*Robot, bool) {
 	for _, robot := range self.Data.Robots {
-		if ua == robot.UserAgent {
+		if ua == strings.Trim(robot.UserAgent, " ") {
 			return robot, true
 		}
 	}
@@ -254,6 +254,17 @@ func (self *Manifest) ParseDevice(ua string) *Device {
 	return nil
 }
 
+func (self *Manifest) deduceDevice(agentType string) *Device {
+	device, _ := self.FindDeviceByName("Personal computer")
+	switch agentType {
+	case "Other", "Library", "Validator", "Useragent Anonymizer":
+		device = self.OtherDevice()
+	case "Mobile Browser", "Wap Browser":
+		device, _ = self.FindDeviceByName("Smartphone")
+	}
+	return device
+}
+
 func (self *Manifest) Parse(ua string) *Agent {
 	var agent *Agent
 
@@ -274,13 +285,7 @@ func (self *Manifest) Parse(ua string) *Agent {
 			}
 
 			if agent.Device = self.ParseDevice(ua); agent.Device == nil {
-				if agent.Type == "Other" || agent.Type == "Library" || agent.Type == "Validator" || agent.Type == "Useragent Anonymizer" {
-					agent.Device = self.OtherDevice()
-				} else if agent.Type == "Mobile Browser" || agent.Type == "Wap Browser" {
-					agent.Device, _ = self.FindDeviceByName("Smartphone")
-				} else {
-					agent.Device, _ = self.FindDeviceByName("Personal computer")
-				}
+				agent.Device = self.deduceDevice(agent.Type)
 			}
 		}
 	}
