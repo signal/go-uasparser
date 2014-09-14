@@ -8,10 +8,11 @@ import (
 )
 
 const (
-	UnknownBrowser       = "unknown"
-	OtherBrowserTypeName = "Other"
-	UnknownOsName        = "unknown"
-	OtherDeviceName      = "Other"
+	UnknownBrowserName     = "unknown"
+	OtherBrowserTypeName   = "Other"
+	UnknownBrowserTypeName = "unknown"
+	UnknownOsName          = "unknown"
+	OtherDeviceName        = "Other"
 )
 
 type regEntity struct {
@@ -207,7 +208,7 @@ func (self *Manifest) FindDeviceByName(name string) (*Device, bool) {
 func (self *Manifest) UnknownBrowser() *Browser {
 	return &Browser{
 		entity: entity{
-			Name: UnknownBrowser,
+			Name: UnknownBrowserName,
 		},
 	}
 }
@@ -234,7 +235,7 @@ func (self *Manifest) UnknownOs() *Os {
 }
 
 func (self *Manifest) OtherDevice() *Device {
-	if self.otherDevice == nil {
+	if self.otherDevice == nil { // memoize
 		self.otherDevice, _ = self.FindDeviceByName(OtherDeviceName)
 	}
 	return self.otherDevice
@@ -297,14 +298,16 @@ func (self *Manifest) Parse(ua string) *Agent {
 			agent.Os, _ = self.GetOsForBrowser(browserVer.Id)
 		} else {
 			agent.BrowserVersion = self.UnknownBrowserVersion()
-			agent.Type = self.OtherBrowserType().Name
-
+			agent.Type = UnknownBrowserTypeName
 		}
+
+		// if no OS found using the browser, find one directly
 		if agent.Os == nil {
 			if agent.Os = self.ParseOs(ua); agent.Os == nil {
 				agent.Os = self.UnknownOs()
 			}
 		}
+
 		if agent.Device = self.ParseDevice(ua); agent.Device == nil {
 			agent.Device = self.deduceDevice(agent.Type)
 		}

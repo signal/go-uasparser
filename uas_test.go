@@ -309,12 +309,12 @@ func TestParse_FindOsDeviceWithNoBrowser(t *testing.T) {
 	browser := manifest.UnknownBrowser()
 	os, ok := manifest.GetOs(107) // Android, Gingerbread
 	Asserts(t, "os found", ok)
-	device, ok := manifest.FindDeviceByName("Other")
+	device, ok := manifest.FindDeviceByName("Personal computer")
 	Asserts(t, "device found", ok)
 
 	agent := manifest.Parse(ua)
 	AssertEquals(t, "agent string", ua, agent.String)
-	AssertEquals(t, "agent type", "Other", agent.Type)
+	AssertEquals(t, "agent type", "unknown", agent.Type)
 	AssertDeepEquals(t, "agent browser", browser, agent.BrowserVersion.Browser)
 	AssertDeepEquals(t, "agent browser version", "", agent.BrowserVersion.Version)
 	AssertDeepEquals(t, "agent os", os, agent.Os)
