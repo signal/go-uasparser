@@ -8,6 +8,7 @@ import (
 )
 
 const (
+	UnknownBrowser       = "unknown"
 	OtherBrowserTypeName = "Other"
 	UnknownOsName        = "unknown"
 	OtherDeviceName      = "Other"
@@ -203,6 +204,21 @@ func (self *Manifest) FindDeviceByName(name string) (*Device, bool) {
 	return nil, false
 }
 
+func (self *Manifest) UnknownBrowser() *Browser {
+	return &Browser{
+		entity: entity{
+			Name: UnknownBrowser,
+		},
+	}
+}
+
+func (self *Manifest) UnknownBrowserVersion() *BrowserVersion {
+	return &BrowserVersion{
+		Browser: self.UnknownBrowser(),
+		Version: "",
+	}
+}
+
 func (self *Manifest) OtherBrowserType() *BrowserType {
 	if self.otherBrowserType == nil {
 		self.otherBrowserType, _ = self.FindBrowserTypeByName(OtherBrowserTypeName)
@@ -268,25 +284,29 @@ func (self *Manifest) deduceDevice(agentType string) *Device {
 func (self *Manifest) Parse(ua string) *Agent {
 	var agent *Agent
 
-	if !self.IsRobot(ua) {
-		if browserVer := self.ParseBrowserVersion(ua); browserVer != nil {
-			agent = &Agent{String: ua, BrowserVersion: browserVer}
+	if len(ua) > 0 && !self.IsRobot(ua) {
+		agent = &Agent{String: ua}
 
+		if browserVer := self.ParseBrowserVersion(ua); browserVer != nil {
+			agent.BrowserVersion = browserVer
 			browserType, found := self.GetBrowserType(browserVer.TypeId)
 			if !found {
 				browserType = self.OtherBrowserType()
 			}
 			agent.Type = browserType.Name
+			agent.Os, _ = self.GetOsForBrowser(browserVer.Id)
+		} else {
+			agent.BrowserVersion = self.UnknownBrowserVersion()
+			agent.Type = self.OtherBrowserType().Name
 
-			if agent.Os, found = self.GetOsForBrowser(browserVer.Id); !found {
-				if agent.Os = self.ParseOs(ua); agent.Os == nil {
-					agent.Os = self.UnknownOs()
-				}
+		}
+		if agent.Os == nil {
+			if agent.Os = self.ParseOs(ua); agent.Os == nil {
+				agent.Os = self.UnknownOs()
 			}
-
-			if agent.Device = self.ParseDevice(ua); agent.Device == nil {
-				agent.Device = self.deduceDevice(agent.Type)
-			}
+		}
+		if agent.Device = self.ParseDevice(ua); agent.Device == nil {
+			agent.Device = self.deduceDevice(agent.Type)
 		}
 	}
 

@@ -302,3 +302,21 @@ func TestParse_BrowserFoundButUnknownOs(t *testing.T) {
 	AssertDeepEquals(t, "agent os", os, agent.Os)
 	AssertDeepEquals(t, "agent device", device, agent.Device)
 }
+
+func TestParse_FindOsDeviceWithNoBrowser(t *testing.T) {
+	ua := "Mozilla/5.0 (Linux; Android 2.3.4; MT11i Build/4.0.2.A.0.62)"
+
+	browser := manifest.UnknownBrowser()
+	os, ok := manifest.GetOs(107) // Android, Gingerbread
+	Asserts(t, "os found", ok)
+	device, ok := manifest.FindDeviceByName("Other")
+	Asserts(t, "device found", ok)
+
+	agent := manifest.Parse(ua)
+	AssertEquals(t, "agent string", ua, agent.String)
+	AssertEquals(t, "agent type", "Other", agent.Type)
+	AssertDeepEquals(t, "agent browser", browser, agent.BrowserVersion.Browser)
+	AssertDeepEquals(t, "agent browser version", "", agent.BrowserVersion.Version)
+	AssertDeepEquals(t, "agent os", os, agent.Os)
+	AssertDeepEquals(t, "agent device", device, agent.Device)
+}
