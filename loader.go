@@ -1,4 +1,3 @@
-// Loads up a UAS manifest from an XML file.
 package uas
 
 import (
@@ -39,6 +38,7 @@ func compileDeviceRegs(data *Data) {
 	}
 }
 
+// Creates a new Manifest instance by processing the XML from the provided Reader.
 func Load(reader io.Reader) (*Manifest, error) {
 	manifest := &Manifest{}
 	if err := xml.NewDecoder(reader).Decode(manifest); err != nil {
@@ -50,6 +50,7 @@ func Load(reader io.Reader) (*Manifest, error) {
 	return manifest, nil
 }
 
+// Creates a new Manifest instance by processing the XML from the provided file.
 func LoadFile(path string) (*Manifest, error) {
 	file, err := os.Open(path)
 	if err != nil {
