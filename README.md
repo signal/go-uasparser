@@ -7,6 +7,9 @@ for more detailed usage.
 ## Disclaimer(s)
 
 This package does its best to similarly implement the logic from the PHP implementation found on
-[UAS.info](http://user-agent-string.info/download). Should you find glaring mistakes, please do
-open an issue or a pull request.
+[UAS.info](http://user-agent-string.info/download); except where the documentation states that it didn't
+want to. Should you find glaring mistakes, please do open an issue or a pull request.
 
+## License
+
+go-uasparser is released under the MIT license. See [MIT LICENSE](https://github.com/signal/go-uasparser/blob/master/MIT-LICENSE).
