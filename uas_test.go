@@ -320,3 +320,13 @@ func TestParse_FindOsDeviceWithNoBrowser(t *testing.T) {
 	AssertDeepEquals(t, "agent os", os, agent.Os)
 	AssertDeepEquals(t, "agent device", device, agent.Device)
 }
+
+// Benchmark
+func BenchmarkParse_FindOperaMobileBrowser(b *testing.B) {
+	ua := "Mozilla/5.0 (Linux; Android 2.3.4; MT11i Build/4.0.2.A.0.62) AppleWebKit/537.22 " +
+		"(KHTML, like Gecko) Chrome/25.0.1364.123 Mobile Safari/537.22 OPR/14.0.1025.52315"
+
+	for i := 0; i < b.N; i++ {
+		manifest.Parse(ua)
+	}
+}
