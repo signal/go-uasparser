@@ -270,14 +270,16 @@ func (self *Manifest) ParseDevice(ua string) *Device {
 }
 
 func (self *Manifest) deduceDevice(agentType string) *Device {
-	device, _ := self.FindDeviceByName("Personal computer")
 	switch agentType {
 	case "Other", "Library", "Validator", "Useragent Anonymizer":
-		device = self.OtherDevice
+		return self.OtherDevice
 	case "Mobile Browser", "Wap Browser":
-		device, _ = self.FindDeviceByName("Smartphone")
+		device, _ := self.FindDeviceByName("Smartphone")
+		return device
+	default:
+		device, _ := self.FindDeviceByName("Personal computer")
+		return device
 	}
-	return device
 }
 
 // Parses a provided user-agent string and returns an Agent instance. If the user-agent
