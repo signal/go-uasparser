@@ -35,7 +35,7 @@ func init() {
 func TestLoad_PartialFile(t *testing.T) {
 	filePath, err := filepath.Abs("test/data/uas-partial-data.xml")
 	if err != nil {
-		t.Error(fmt.Sprintf("Unexpected error", err))
+		t.Error("Unexpected error", err)
 	}
 
 	file, err := os.Open(filePath)
@@ -306,7 +306,7 @@ func TestParse_BrowserFoundButUnknownOs(t *testing.T) {
 func TestParse_FindOsDeviceWithNoBrowser(t *testing.T) {
 	ua := "Mozilla/5.0 (Linux; Android 2.3.4; MT11i Build/4.0.2.A.0.62)"
 
-	browser := manifest.UnknownBrowser()
+	browser := manifest.UnknownBrowser
 	os, ok := manifest.GetOs(107) // Android, Gingerbread
 	Asserts(t, "os found", ok)
 	device, ok := manifest.FindDeviceByName("Personal computer")
@@ -319,4 +319,14 @@ func TestParse_FindOsDeviceWithNoBrowser(t *testing.T) {
 	AssertDeepEquals(t, "agent browser version", "", agent.BrowserVersion.Version)
 	AssertDeepEquals(t, "agent os", os, agent.Os)
 	AssertDeepEquals(t, "agent device", device, agent.Device)
+}
+
+// Benchmark
+func BenchmarkParse_FindOperaMobileBrowser(b *testing.B) {
+	ua := "Mozilla/5.0 (Linux; Android 2.3.4; MT11i Build/4.0.2.A.0.62) AppleWebKit/537.22 " +
+		"(KHTML, like Gecko) Chrome/25.0.1364.123 Mobile Safari/537.22 OPR/14.0.1025.52315"
+
+	for i := 0; i < b.N; i++ {
+		manifest.Parse(ua)
+	}
 }
