@@ -38,15 +38,34 @@ func compileDeviceRegs(data *Data) {
 	}
 }
 
+func initOtherUnknown(manifest *Manifest) {
+	manifest.OtherBrowserType, _ = manifest.FindBrowserTypeByName(OtherBrowserTypeName)
+	manifest.UnknownOs, _ = manifest.FindOsByName(UnknownOsName)
+	manifest.OtherDevice, _ = manifest.FindDeviceByName(OtherDeviceName)
+	manifest.UnknownBrowser = &Browser{
+		entity: entity{
+			Name: UnknownBrowserName,
+		},
+	}
+	manifest.UnknownBrowserVersion = &BrowserVersion{
+		Browser: manifest.UnknownBrowser,
+		Version: "",
+	}
+}
+
 // Creates a new Manifest instance by processing the XML from the provided Reader.
 func Load(reader io.Reader) (*Manifest, error) {
 	manifest := &Manifest{}
 	if err := xml.NewDecoder(reader).Decode(manifest); err != nil {
 		return nil, err
 	}
+
 	compileBrowserRegs(manifest.Data)
 	compileOsRegs(manifest.Data)
 	compileDeviceRegs(manifest.Data)
+
+	initOtherUnknown(manifest)
+
 	return manifest, nil
 }
 
