@@ -35,7 +35,7 @@ func init() {
 func TestLoad_PartialFile(t *testing.T) {
 	filePath, err := filepath.Abs("test/data/uas-partial-data.xml")
 	if err != nil {
-		t.Error(fmt.Sprintf("Unexpected error", err))
+		t.Error("Unexpected error", err)
 	}
 
 	file, err := os.Open(filePath)
@@ -306,7 +306,7 @@ func TestParse_BrowserFoundButUnknownOs(t *testing.T) {
 func TestParse_FindOsDeviceWithNoBrowser(t *testing.T) {
 	ua := "Mozilla/5.0 (Linux; Android 2.3.4; MT11i Build/4.0.2.A.0.62)"
 
-	browser := manifest.UnknownBrowser()
+	browser := manifest.UnknownBrowser
 	os, ok := manifest.GetOs(107) // Android, Gingerbread
 	Asserts(t, "os found", ok)
 	device, ok := manifest.FindDeviceByName("Personal computer")
