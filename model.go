@@ -48,6 +48,10 @@ type Browser struct {
 	TypeId  int    `xml:"type"`
 	URL     string `xml:"url"`
 	InfoURL string `xml:"browser_info_url"`
+
+	// mapped after parsing
+	Type *BrowserType
+	Os   *Os
 }
 type BrowserType struct {
 	Id   int    `xml:"id"`
@@ -118,8 +122,9 @@ type Agent struct {
 	Device         *Device
 }
 
-// Returns the Robot instance (along with a true value indicating success) matching the provided
-// user-agent string. Otherwise a nil and false are returned.
+// FindRobot identifies a Robot instance (along with a true value indicating
+// success) matching the provided user-agent string. Otherwise a nil and false
+// are returned.
 func (self *Manifest) FindRobot(ua string) (*Robot, bool) {
 	for _, robot := range self.Data.Robots {
 		if ua == strings.Trim(robot.UserAgent, " ") {
@@ -129,14 +134,16 @@ func (self *Manifest) FindRobot(ua string) (*Robot, bool) {
 	return nil, false
 }
 
-// Returns true if the given user-agent string matches the user-agent for a Robot (bot).
+// IsRobot returns true if the given user-agent string matches the user-agent
+// for a Robot (bot).
 func (self *Manifest) IsRobot(ua string) bool {
 	_, found := self.FindRobot(ua)
 	return found
 }
 
-// Finds a specific Browser by its listed ID in the manifest. Returns nil,false if
-// no Browser has the given ID; otherwise it returns a Browser instance and true.
+// GetBrowser retrieves a specific Browser by its listed ID in the manifest.
+// Returns nil,false if no Browser has the given ID; otherwise it returns a
+// Browser instance and true.
 func (self *Manifest) GetBrowser(id int) (*Browser, bool) {
 	for _, browser := range self.Data.Browsers {
 		if id == browser.Id {
@@ -146,8 +153,9 @@ func (self *Manifest) GetBrowser(id int) (*Browser, bool) {
 	return nil, false
 }
 
-// Finds a specific BrowserType by its listed ID in the manifest. Returns nil,false if
-// no BrowserType has the given ID; otherwise it returns a BrowserType instance and true.
+// GetBrowserType retrives a specific BrowserType by its listed ID in the manifest.
+// Returns nil,false if no BrowserType has the given ID; otherwise it returns a
+// BrowserType instance and true.
 func (self *Manifest) GetBrowserType(id int) (*BrowserType, bool) {
 	for _, browserType := range self.Data.BrowserTypes {
 		if id == browserType.Id {
@@ -157,7 +165,7 @@ func (self *Manifest) GetBrowserType(id int) (*BrowserType, bool) {
 	return nil, false
 }
 
-// Finds a specific Os by its listed ID in the manifest. Returns nil,false if
+// GetOs retrieves a specific Os by its listed ID in the manifest. Returns nil,false if
 // no OS has the given ID; otherwise it returns an Os instance and true.
 func (self *Manifest) GetOs(id int) (*Os, bool) {
 	for _, os := range self.Data.OperatingSystems {
@@ -168,9 +176,10 @@ func (self *Manifest) GetOs(id int) (*Os, bool) {
 	return nil, false
 }
 
-// Finds the Os tied to a Browser given by the Browser's ID in the manifest. Returns nil,false
-// if no Browser has the given ID or if no Os exists for the ID listed with the Browser (unlikely).
-// Otherwise it returns an Os instance and true.
+// GetOsForBrowser retrieves the Os tied to a Browser given by the Browser's ID
+// in the manifest. Returns nil,false if no Browser has the given ID or if no Os
+// exists for the ID listed with the Browser (unlikely). Otherwise it returns an
+// Os instance and true.
 func (self *Manifest) GetOsForBrowser(id int) (*Os, bool) {
 	for _, browserOs := range self.Data.BrowsersOs {
 		if id == browserOs.BrowserId {
@@ -180,8 +189,9 @@ func (self *Manifest) GetOsForBrowser(id int) (*Os, bool) {
 	return nil, false
 }
 
-// Finds a specific Device by its ID in the manifest. Returns nil,false if
-// no Device has the given ID; otherwise it returns a Device instance and true.
+// GetDevice retrieves a specific Device by its ID in the manifest. Returns
+// nil,false if no Device has the given ID; otherwise it returns a Device
+// instance and true.
 func (self *Manifest) GetDevice(id int) (*Device, bool) {
 	for _, device := range self.Data.Devices {
 		if id == device.Id {
@@ -191,8 +201,9 @@ func (self *Manifest) GetDevice(id int) (*Device, bool) {
 	return nil, false
 }
 
-// Finds a specific BrowserType by its listed name in the manifest. Returns nil,false if
-// no BrowserType has the given name; otherwise it returns a BrowserType instance and true.
+// FindBrowserTypeByName identifies a specific BrowserType by its listed name
+// in the manifest. Returns nil,false if no BrowserType has the given name;
+// otherwise it returns a BrowserType instance and true.
 func (self *Manifest) FindBrowserTypeByName(name string) (*BrowserType, bool) {
 	for _, os := range self.Data.BrowserTypes {
 		if name == os.Name {
@@ -202,8 +213,9 @@ func (self *Manifest) FindBrowserTypeByName(name string) (*BrowserType, bool) {
 	return nil, false
 }
 
-// Finds a specific Os by its listed name in the manifest. Returns nil,false if
-// no OS has the given name; otherwise it returns an Os instance and true.
+// FindOsByName identifies a specific Os by its listed name in the manifest.
+// Returns nil,false if no OS has the given name; otherwise it returns an
+// Os instance and true.
 func (self *Manifest) FindOsByName(name string) (*Os, bool) {
 	for _, os := range self.Data.OperatingSystems {
 		if name == os.Name {
@@ -213,8 +225,9 @@ func (self *Manifest) FindOsByName(name string) (*Os, bool) {
 	return nil, false
 }
 
-// Finds a specific Device by its listed name in the manifest. Returns nil,false if
-// no device has the given name; otherwise it returns a Device instance and true.
+// FindDeviceByName identifies a specific Device by its listed name in the
+// manifest. Returns nil,false if no device has the given name; otherwise
+// it returns a Device instance and true.
 func (self *Manifest) FindDeviceByName(name string) (*Device, bool) {
 	for _, device := range self.Data.Devices {
 		if name == device.Name {
@@ -224,7 +237,7 @@ func (self *Manifest) FindDeviceByName(name string) (*Device, bool) {
 	return nil, false
 }
 
-// Returns a Browser instance representing an unknown browser.
+// UnknownBrowser eturns a Browser instance representing the Unknown browser.
 func (self *Manifest) UnknownBrowser() *Browser {
 	return &Browser{
 		entity: entity{
@@ -233,7 +246,8 @@ func (self *Manifest) UnknownBrowser() *Browser {
 	}
 }
 
-// Returns a BrowserVersion instance representing an unknown match.
+// UnknownBrowserVersion returns a BrowserVersion instance representing an Unknown
+// browser and version.
 func (self *Manifest) UnknownBrowserVersion() *BrowserVersion {
 	return &BrowserVersion{
 		Browser: self.UnknownBrowser(),
@@ -241,7 +255,7 @@ func (self *Manifest) UnknownBrowserVersion() *BrowserVersion {
 	}
 }
 
-// Returns a Browser that represents the Other type.
+// OtherBrowserType returns a Browser that represents the Other type.
 func (self *Manifest) OtherBrowserType() *BrowserType {
 	if self.otherBrowserType == nil { // memoize
 		self.otherBrowserType, _ = self.FindBrowserTypeByName(OtherBrowserTypeName)
@@ -249,7 +263,7 @@ func (self *Manifest) OtherBrowserType() *BrowserType {
 	return self.otherBrowserType
 }
 
-// Returns an Os that represents the Unknown type.
+// UnknownOs returns an Os that represents the Unknown type.
 func (self *Manifest) UnknownOs() *Os {
 	if self.unknownOs == nil { // memoize
 		self.unknownOs, _ = self.FindOsByName(UnknownOsName)
@@ -257,7 +271,7 @@ func (self *Manifest) UnknownOs() *Os {
 	return self.unknownOs
 }
 
-// Returns a Device that represents the Other type.
+// OtherDevice returns a Device that represents the Other type.
 func (self *Manifest) OtherDevice() *Device {
 	if self.otherDevice == nil { // memoize
 		self.otherDevice, _ = self.FindDeviceByName(OtherDeviceName)
@@ -265,9 +279,9 @@ func (self *Manifest) OtherDevice() *Device {
 	return self.otherDevice
 }
 
-// Parses out a BrowserVersion instance from a user-agent string. That is, it finds
-// a matching Browser and extracts a version string if it can. Returns nil if no
-// match could be found.
+// ParseBrowserVersion parses out a BrowserVersion instance from a user-agent string.
+// That is, it finds a matching Browser and extracts a version string if it can.
+// Returns nil if no match could be found.
 func (self *Manifest) ParseBrowserVersion(ua string) *BrowserVersion {
 	for _, reg := range self.Data.BrowsersReg {
 		if matches := reg.Reg.FindStringSubmatch(ua); matches != nil {
@@ -278,7 +292,7 @@ func (self *Manifest) ParseBrowserVersion(ua string) *BrowserVersion {
 	return nil
 }
 
-// Parses a Os from the provider user-agent string. You may get different
+// ParseOs identifies an Os from the provider user-agent string. You may get different
 // results over what you might get from calling Parse as this is a less deductive
 // function. Returns nil if no Device is matched.
 func (self *Manifest) ParseOs(ua string) *Os {
@@ -291,9 +305,9 @@ func (self *Manifest) ParseOs(ua string) *Os {
 	return nil
 }
 
-// Parses a Device from the provider user-agent string. You may get different
-// results over what you might get from calling Parse as this is a less deductive
-// function. Returns nil if no Device is matched.
+// ParseDevice identifies a Device from the provider user-agent string. You may
+// get different results over what you might get from calling Parse as this is a
+// less deductive function. Returns nil if no Device is matched.
 func (self *Manifest) ParseDevice(ua string) *Device {
 	for _, reg := range self.Data.DevicesReg {
 		if reg.Reg.MatchString(ua) {
@@ -315,9 +329,10 @@ func (self *Manifest) deduceDevice(agentType string) *Device {
 	return device
 }
 
-// Parses a provided user-agent string and returns an Agent instance. If the user-agent
-// matches that of a robot, nil is returned. If no browser is matched, it will be listed
-// as unknown, but the OS and device may still be matched.
+// Parse parses a provided user-agent string and returns an Agent instance. If
+// the user-agent matches that of a robot, nil is returned. If no browser is
+// matched, it will be listed as unknown, but the OS and device may still be
+// matched.
 func (self *Manifest) Parse(ua string) *Agent {
 	var agent *Agent
 
@@ -326,12 +341,8 @@ func (self *Manifest) Parse(ua string) *Agent {
 
 		if browserVer := self.ParseBrowserVersion(ua); browserVer != nil {
 			agent.BrowserVersion = browserVer
-			browserType, found := self.GetBrowserType(browserVer.TypeId)
-			if !found {
-				browserType = self.OtherBrowserType()
-			}
-			agent.Type = browserType.Name
-			agent.Os, _ = self.GetOsForBrowser(browserVer.Id)
+			agent.Type = browserVer.Type.Name
+			agent.Os = browserVer.Os
 		} else {
 			agent.BrowserVersion = self.UnknownBrowserVersion()
 			agent.Type = UnknownBrowserTypeName

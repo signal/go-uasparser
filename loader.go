@@ -38,6 +38,22 @@ func compileDeviceRegs(data *Data) {
 	}
 }
 
+func mapBrowserTypeToBrowser(manifest *Manifest) {
+	for _, browser := range manifest.Data.Browsers {
+		browserType, found := manifest.GetBrowserType(browser.TypeId)
+		if !found {
+			browserType = manifest.OtherBrowserType()
+		}
+		browser.Type = browserType
+	}
+}
+
+func mapOsToBrowser(manifest *Manifest) {
+	for _, browser := range manifest.Data.Browsers {
+		browser.Os, _ = manifest.GetOsForBrowser(browser.Id)
+	}
+}
+
 // Creates a new Manifest instance by processing the XML from the provided Reader.
 func Load(reader io.Reader) (*Manifest, error) {
 	manifest := &Manifest{}
@@ -47,6 +63,8 @@ func Load(reader io.Reader) (*Manifest, error) {
 	compileBrowserRegs(manifest.Data)
 	compileOsRegs(manifest.Data)
 	compileDeviceRegs(manifest.Data)
+	mapBrowserTypeToBrowser(manifest)
+	mapOsToBrowser(manifest)
 	return manifest, nil
 }
 
