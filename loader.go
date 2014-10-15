@@ -17,22 +17,19 @@ func compileReg(reg string) *regexp.Regexp {
 	return regexp.MustCompile(regMatcher.ReplaceAllString(reg, "(?${flags}:${reg})"))
 }
 
-func compileBrowserRegs(data *Data) {
-	regs := data.BrowsersReg
+func compileBrowserRegs(regs []*BrowserReg) {
 	for i, reg := range regs {
 		regs[i].Reg = compileReg(reg.RegString)
 	}
 }
 
-func compileOsRegs(data *Data) {
-	regs := data.OperatingSystemsReg
+func compileOsRegs(regs []*OsReg) {
 	for i, reg := range regs {
 		regs[i].Reg = compileReg(reg.RegString)
 	}
 }
 
-func compileDeviceRegs(data *Data) {
-	regs := data.DevicesReg
+func compileDeviceRegs(regs []*DeviceReg) {
 	for i, reg := range regs {
 		regs[i].Reg = compileReg(reg.RegString)
 	}
@@ -60,9 +57,9 @@ func Load(reader io.Reader) (*Manifest, error) {
 	if err := xml.NewDecoder(reader).Decode(manifest); err != nil {
 		return nil, err
 	}
-	compileBrowserRegs(manifest.Data)
-	compileOsRegs(manifest.Data)
-	compileDeviceRegs(manifest.Data)
+	compileBrowserRegs(manifest.Data.BrowsersReg)
+	compileOsRegs(manifest.Data.OperatingSystemsReg)
+	compileDeviceRegs(manifest.Data.DevicesReg)
 	mapBrowserTypeToBrowser(manifest)
 	mapOsToBrowser(manifest)
 	return manifest, nil
