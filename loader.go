@@ -40,7 +40,7 @@ func mapBrowserTypeToBrowser(manifest *Manifest) {
 	for _, browser := range manifest.Data.Browsers {
 		browserType, found := manifest.GetBrowserType(browser.TypeId)
 		if !found {
-			browserType = manifest.OtherBrowserType()
+			browserType = manifest.otherBrowserType
 		}
 		browser.Type = browserType
 	}
@@ -49,6 +49,21 @@ func mapBrowserTypeToBrowser(manifest *Manifest) {
 func mapOsToBrowser(manifest *Manifest) {
 	for _, browser := range manifest.Data.Browsers {
 		browser.Os, _ = manifest.GetOsForBrowser(browser.Id)
+	}
+}
+
+func initOtherUnknown(manifest *Manifest) {
+	manifest.otherBrowserType, _ = manifest.FindBrowserTypeByName(OtherBrowserTypeName)
+	manifest.unknownOs, _ = manifest.FindOsByName(UnknownOsName)
+	manifest.otherDevice, _ = manifest.FindDeviceByName(OtherDeviceName)
+	manifest.unknownBrowser = &Browser{
+		entity: entity{
+			Name: UnknownBrowserName,
+		},
+	}
+	manifest.unknownBrowserVersion = &BrowserVersion{
+		Browser: manifest.unknownBrowser,
+		Version: "",
 	}
 }
 
@@ -63,11 +78,13 @@ func Load(reader io.Reader) (*Manifest, error) {
 	if err := xml.NewDecoder(reader).Decode(manifest); err != nil {
 		return nil, err
 	}
+	initOtherUnknown(manifest)
 	compileBrowserRegs(manifest.Data.BrowsersReg)
 	compileOsRegs(manifest.Data.OperatingSystemsReg)
 	compileDeviceRegs(manifest.Data.DevicesReg)
 	mapBrowserTypeToBrowser(manifest)
 	mapOsToBrowser(manifest)
+
 	return manifest, nil
 }
 

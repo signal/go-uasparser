@@ -106,10 +106,12 @@ type Manifest struct {
 	Data        *Data
 
 	// for memoization
-	otherBrowserType *BrowserType
-	unknownOs        *Os
-	otherDevice      *Device
-	cache            *lru.Cache
+	otherBrowserType      *BrowserType
+	unknownBrowser        *Browser
+	unknownBrowserVersion *BrowserVersion
+	unknownOs             *Os
+	otherDevice           *Device
+	cache                 *lru.Cache
 }
 
 type BrowserVersion struct {
@@ -251,48 +253,6 @@ func (self *Manifest) FindDeviceByName(name string) (*Device, bool) {
 	return nil, false
 }
 
-// UnknownBrowser eturns a Browser instance representing the Unknown browser.
-func (self *Manifest) UnknownBrowser() *Browser {
-	return &Browser{
-		entity: entity{
-			Name: UnknownBrowserName,
-		},
-	}
-}
-
-// UnknownBrowserVersion returns a BrowserVersion instance representing an Unknown
-// browser and version.
-func (self *Manifest) UnknownBrowserVersion() *BrowserVersion {
-	return &BrowserVersion{
-		Browser: self.UnknownBrowser(),
-		Version: "",
-	}
-}
-
-// OtherBrowserType returns a Browser that represents the Other type.
-func (self *Manifest) OtherBrowserType() *BrowserType {
-	if self.otherBrowserType == nil { // memoize
-		self.otherBrowserType, _ = self.FindBrowserTypeByName(OtherBrowserTypeName)
-	}
-	return self.otherBrowserType
-}
-
-// UnknownOs returns an Os that represents the Unknown type.
-func (self *Manifest) UnknownOs() *Os {
-	if self.unknownOs == nil { // memoize
-		self.unknownOs, _ = self.FindOsByName(UnknownOsName)
-	}
-	return self.unknownOs
-}
-
-// OtherDevice returns a Device that represents the Other type.
-func (self *Manifest) OtherDevice() *Device {
-	if self.otherDevice == nil { // memoize
-		self.otherDevice, _ = self.FindDeviceByName(OtherDeviceName)
-	}
-	return self.otherDevice
-}
-
 // ParseBrowserVersion parses out a BrowserVersion instance from a user-agent string.
 // That is, it finds a matching Browser and extracts a version string if it can.
 // Returns nil if no match could be found.
@@ -337,7 +297,7 @@ func (self *Manifest) deduceDevice(agentType string) *Device {
 	device, _ := self.FindDeviceByName("Personal computer")
 	switch agentType {
 	case "Other", "Library", "Validator", "Useragent Anonymizer":
-		device = self.OtherDevice()
+		device = self.otherDevice
 	case "Mobile Browser", "Wap Browser":
 		device, _ = self.FindDeviceByName("Smartphone")
 	}
@@ -360,14 +320,14 @@ func (self *Manifest) Parse(ua string) *Agent {
 			agent.Type = browserVer.Type.Name
 			agent.Os = browserVer.Os
 		} else {
-			agent.BrowserVersion = self.UnknownBrowserVersion()
+			agent.BrowserVersion = self.unknownBrowserVersion
 			agent.Type = UnknownBrowserTypeName
 		}
 
 		// if no OS found using the browser, find one directly
 		if agent.Os == nil {
 			if agent.Os = self.ParseOs(ua); agent.Os == nil {
-				agent.Os = self.UnknownOs()
+				agent.Os = self.unknownOs
 			}
 		}
 
