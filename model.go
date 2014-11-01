@@ -2,6 +2,7 @@ package uas
 
 import (
 	"encoding/xml"
+	"github.com/hashicorp/golang-lru"
 	"regexp"
 	"strings"
 )
@@ -108,6 +109,7 @@ type Manifest struct {
 	otherBrowserType *BrowserType
 	unknownOs        *Os
 	otherDevice      *Device
+	cache            *lru.Cache
 }
 
 type BrowserVersion struct {
@@ -120,6 +122,18 @@ type Agent struct {
 	BrowserVersion *BrowserVersion
 	Os             *Os
 	Device         *Device
+}
+
+func (self *Manifest) cacheAgent(ua string, agent *Agent) *Agent {
+	self.cache.Add(ua, agent)
+	return agent
+}
+
+func (self *Manifest) getAgentFromCache(ua string) *Agent {
+	if value, found := self.cache.Get(ua); found {
+		return value.(*Agent)
+	}
+	return nil
 }
 
 // FindRobot identifies a Robot instance (along with a true value indicating
@@ -284,8 +298,9 @@ func (self *Manifest) OtherDevice() *Device {
 // Returns nil if no match could be found.
 func (self *Manifest) ParseBrowserVersion(ua string) *BrowserVersion {
 	for _, reg := range self.Data.BrowsersReg {
-		if matches := reg.Reg.FindStringSubmatch(ua); matches != nil {
+		if reg.Reg.MatchString(ua) {
 			browser, _ := self.GetBrowser(reg.BrowserId)
+			matches := reg.Reg.FindStringSubmatch(ua)
 			return &BrowserVersion{browser, strings.Join(matches[1:], "/")}
 		}
 	}
@@ -332,12 +347,13 @@ func (self *Manifest) deduceDevice(agentType string) *Device {
 // Parse parses a provided user-agent string and returns an Agent instance. If
 // the user-agent matches that of a robot, nil is returned. If no browser is
 // matched, it will be listed as unknown, but the OS and device may still be
-// matched.
+// matched. When possible, the returned Agent will be cached in an LRU-cache
+// based on the full user-agent string.
 func (self *Manifest) Parse(ua string) *Agent {
-	var agent *Agent
+	agent := self.getAgentFromCache(ua)
 
-	if len(ua) > 0 && !self.IsRobot(ua) {
-		agent = &Agent{String: ua}
+	if agent == nil && len(ua) > 0 && !self.IsRobot(ua) {
+		agent = self.cacheAgent(ua, &Agent{String: ua})
 
 		if browserVer := self.ParseBrowserVersion(ua); browserVer != nil {
 			agent.BrowserVersion = browserVer

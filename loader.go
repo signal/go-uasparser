@@ -2,6 +2,7 @@ package uas
 
 import (
 	"encoding/xml"
+	"github.com/hashicorp/golang-lru"
 	"io"
 	"os"
 	"regexp"
@@ -53,7 +54,12 @@ func mapOsToBrowser(manifest *Manifest) {
 
 // Creates a new Manifest instance by processing the XML from the provided Reader.
 func Load(reader io.Reader) (*Manifest, error) {
-	manifest := &Manifest{}
+	cache, err := lru.New(5000) // TODO make configurable
+	if err != nil {
+		return nil, err
+	}
+
+	manifest := &Manifest{cache: cache}
 	if err := xml.NewDecoder(reader).Decode(manifest); err != nil {
 		return nil, err
 	}
