@@ -4,6 +4,23 @@ A Go implementation of the [user-agent-string.info](http://user-agent-string.inf
 User-Agent string analysis tool. See the [GoDoc](http://godoc.org/github.com/signal/go-uasparser)
 for more detailed usage.
 
+## Installation
+
+```sh
+go get "github.com/hashicorp/golang-lru"
+go get "github.com/signal/go-uasparser"
+```
+
+## Running tests
+
+```sh
+make test
+```
+
+```sh
+make benchmark
+```
+
 ## Disclaimer(s)
 
 This package does its best to similarly implement the logic from the PHP implementation found on

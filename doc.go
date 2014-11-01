@@ -44,5 +44,8 @@ robot by asking if it's so:
 	if manifest.IsRobot("Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)") {
 	  fmt.Println("I AM A ROBOT")
 	}
+
+In all cases, when an Agent is found it will be cached in a Manifest-specific LRU that
+can hold 5000 entries. This is not configurable at the moment.
 */
 package uas

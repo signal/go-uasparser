@@ -18,13 +18,13 @@ func loadCsvFile(path string) *os.File {
 }
 
 func TestIntegration_Browsers(t *testing.T) {
-	manifest, err := LoadFile("tmp/uas-manifest.xml")
+	manifest, err := LoadFile("tmp/uas-data/uas-manifest.xml")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	testFile := loadCsvFile("tmp/uas-browser-tests.csv")
+	testFile := loadCsvFile("tmp/uas-data/uas-browser-tests.csv")
 	defer testFile.Close()
 	reader := csv.NewReader(testFile)
 	for {
@@ -51,13 +51,13 @@ func TestIntegration_Browsers(t *testing.T) {
 }
 
 func TestIntegration_OperatingSystems(t *testing.T) {
-	manifest, err := LoadFile("tmp/uas-manifest.xml")
+	manifest, err := LoadFile("tmp/uas-data/uas-manifest.xml")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	testFile := loadCsvFile("tmp/uas-os-tests.csv")
+	testFile := loadCsvFile("tmp/uas-data/uas-os-tests.csv")
 	defer testFile.Close()
 	reader := csv.NewReader(testFile)
 	for {
@@ -85,13 +85,13 @@ func TestIntegration_OperatingSystems(t *testing.T) {
 }
 
 func TestIntegration_Devices(t *testing.T) {
-	manifest, err := LoadFile("tmp/uas-manifest.xml")
+	manifest, err := LoadFile("tmp/uas-data/uas-manifest.xml")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	testFile := loadCsvFile("tmp/uas-device-tests.csv")
+	testFile := loadCsvFile("tmp/uas-data/uas-device-tests.csv")
 	defer testFile.Close()
 	reader := csv.NewReader(testFile)
 	for {
@@ -148,7 +148,7 @@ var specificAgentsExpected = [...]agentTest{
 }
 
 func TestSpecificAgents(t *testing.T) {
-	manifest, err := LoadFile("tmp/uas-manifest.xml")
+	manifest, err := LoadFile("tmp/uas-data/uas-manifest.xml")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
