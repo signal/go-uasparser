@@ -1,11 +1,9 @@
-PWD = $(shell pwd)
+PWD    := $(shell pwd)
+GOPATH := $(PWD)/.go:$(PWD)
+GO     := GOPATH=$(GOPATH) go
+DEPS   := $(shell go list -f '{{range .Imports}}{{.}} {{end}}' ./...)
+
 .PHONY: env deps test-deps test benchmark clean
-
-# environment
-
-GOPATH = $(PWD)/.go:$(PWD)
-GO     = GOPATH=$(GOPATH) go
-DEPS   = $(shell go list -f '{{range .Imports}}{{.}} {{end}}' ./...)
 
 .go:
 	mkdir -p $(PWD)/.go/{bin,pkg,src}

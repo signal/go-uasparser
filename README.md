@@ -7,7 +7,6 @@ for more detailed usage.
 ## Installation
 
 ```sh
-go get "github.com/hashicorp/golang-lru"
 go get "github.com/signal/go-uasparser"
 ```
 
